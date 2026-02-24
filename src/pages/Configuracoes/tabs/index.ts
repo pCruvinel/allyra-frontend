@@ -1,0 +1,8 @@
+export { PadraoTab } from './PadraoTab'
+export { OperacionalTab } from './OperacionalTab'
+export { ComunicacaoTab } from './ComunicacaoTab'
+export { FaturamentoTab } from './FaturamentoTab'
+export { AparenciaTab } from './AparenciaTab'
+export { PermissoesTab } from './PermissoesTab'
+export { CadastroRapidoTab } from './CadastroRapidoTab'
+export { SlidesLoginTab } from './SlidesLoginTab'

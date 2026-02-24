@@ -1,0 +1,1914 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-20T13:04:11.018Z",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript"
+    ],
+    "frameworks": [],
+    "buildTools": [
+      "vite"
+    ],
+    "testFrameworks": [
+      "vitest"
+    ],
+    "packageManager": "npm",
+    "isMonorepo": false,
+    "hasDocker": false,
+    "hasCI": true
+  },
+  "structure": {
+    "totalFiles": 308,
+    "topDirectories": [
+      {
+        "name": "BACKLOG.md",
+        "fileCount": 1
+      },
+      {
+        "name": "components.json",
+        "fileCount": 1
+      },
+      {
+        "name": "docs",
+        "fileCount": 9
+      },
+      {
+        "name": "eslint.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "index.html",
+        "fileCount": 1
+      },
+      {
+        "name": "package-lock.json",
+        "fileCount": 1
+      },
+      {
+        "name": "package.json",
+        "fileCount": 1
+      },
+      {
+        "name": "postcss.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "pre-building.md",
+        "fileCount": 1
+      },
+      {
+        "name": "README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "scripts",
+        "fileCount": 5
+      },
+      {
+        "name": "src",
+        "fileCount": 225
+      },
+      {
+        "name": "supabase",
+        "fileCount": 53
+      },
+      {
+        "name": "tailwind.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.json",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.node.json",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.tsbuildinfo",
+        "fileCount": 1
+      },
+      {
+        "name": "vite.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "vitest.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "wrangler.json",
+        "fileCount": 1
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".tsx",
+        "count": 139
+      },
+      {
+        "extension": ".ts",
+        "count": 127
+      },
+      {
+        "extension": ".md",
+        "count": 18
+      },
+      {
+        "extension": ".json",
+        "count": 6
+      },
+      {
+        "extension": ".sql",
+        "count": 6
+      },
+      {
+        "extension": ".js",
+        "count": 5
+      },
+      {
+        "extension": ".tsbuildinfo",
+        "count": 1
+      },
+      {
+        "extension": ".html",
+        "count": 1
+      },
+      {
+        "extension": ".css",
+        "count": 1
+      },
+      {
+        "extension": ".ps1",
+        "count": 1
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [
+      {
+        "name": "Config",
+        "description": "Configuration and constants",
+        "directories": [
+          ".",
+          "src\\hooks",
+          "src\\config",
+          "src\\config\\__tests__"
+        ],
+        "symbolCount": 18,
+        "dependsOn": []
+      },
+      {
+        "name": "Repositories",
+        "description": "Data access and persistence",
+        "directories": [
+          "supabase\\tests",
+          "src\\hooks",
+          "src\\data",
+          "src\\contexts",
+          "src\\components\\ui"
+        ],
+        "symbolCount": 56,
+        "dependsOn": [
+          "Components"
+        ]
+      },
+      {
+        "name": "Models",
+        "description": "Data structures and domain objects",
+        "directories": [
+          "supabase\\tests",
+          "src\\schemas"
+        ],
+        "symbolCount": 9,
+        "dependsOn": []
+      },
+      {
+        "name": "Services",
+        "description": "Business logic and orchestration",
+        "directories": [
+          "src\\services",
+          "src\\lib",
+          "src\\hooks"
+        ],
+        "symbolCount": 175,
+        "dependsOn": [
+          "Utils"
+        ]
+      },
+      {
+        "name": "Components",
+        "description": "UI components and views",
+        "directories": [
+          "src\\pages",
+          "src\\hooks",
+          "src\\components",
+          "src\\pages\\Placeholder",
+          "src\\pages\\Pacientes",
+          "src\\pages\\Notificacoes",
+          "src\\pages\\Login",
+          "src\\pages\\Dashboard",
+          "src\\pages\\Configuracoes",
+          "src\\pages\\Auth",
+          "src\\pages\\Agenda",
+          "src\\components\\ui",
+          "src\\components\\modals",
+          "src\\components\\chat",
+          "src\\components\\layout",
+          "src\\components\\calendar",
+          "src\\pages\\Login\\components",
+          "src\\pages\\Configuracoes\\tabs",
+          "src\\pages\\Usuarios",
+          "src\\pages\\MeuPerfil",
+          "src\\pages\\Financeiro",
+          "src\\pages\\Faturamento",
+          "src\\pages\\Clientes",
+          "src\\pages\\Auditoria",
+          "src\\pages\\Pacientes\\PacienteDetalhe",
+          "src\\pages\\Financeiro\\Repasse",
+          "src\\pages\\Financeiro\\NFsEmitidas",
+          "src\\pages\\Financeiro\\ContasAReceber",
+          "src\\pages\\Financeiro\\Cobranca",
+          "src\\pages\\Faturamento\\PreFaturamento",
+          "src\\pages\\Faturamento\\FaturamentosEmitidos",
+          "src\\pages\\Clientes\\ClienteDetalhe",
+          "src\\components\\ui\\__tests__",
+          "src\\components\\modals\\__tests__",
+          "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\Prontuario",
+          "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\DadosPaciente",
+          "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\Agendamentos"
+        ],
+        "symbolCount": 212,
+        "dependsOn": []
+      },
+      {
+        "name": "Utils",
+        "description": "Shared utilities and helpers",
+        "directories": [
+          "src\\lib"
+        ],
+        "symbolCount": 8,
+        "dependsOn": []
+      },
+      {
+        "name": "Controllers",
+        "description": "Request handling and routing",
+        "directories": [
+          "src\\routes",
+          "src\\pages\\ApiDocs",
+          "src\\pages\\Configuracoes\\tabs"
+        ],
+        "symbolCount": 12,
+        "dependsOn": []
+      }
+    ],
+    "patterns": [
+      {
+        "name": "Service Layer",
+        "confidence": 0.85,
+        "description": "Encapsulates business logic in service classes",
+        "occurrences": 13
+      }
+    ],
+    "entryPoints": [
+      "src\\types\\index.ts",
+      "src\\services\\index.ts",
+      "src\\schemas\\index.ts",
+      "src\\pages\\index.ts",
+      "src\\hooks\\index.ts",
+      "src\\contexts\\index.ts",
+      "src\\components\\index.ts",
+      "src\\test\\fixtures\\index.ts",
+      "src\\pages\\Placeholder\\index.ts",
+      "src\\pages\\Pacientes\\index.ts",
+      "src\\pages\\Notificacoes\\index.ts",
+      "src\\pages\\Login\\index.ts",
+      "src\\pages\\Dashboard\\index.ts",
+      "src\\pages\\Configuracoes\\index.ts",
+      "src\\pages\\Auth\\index.ts",
+      "src\\pages\\Agenda\\index.ts",
+      "src\\components\\ui\\index.ts",
+      "src\\components\\modals\\index.ts",
+      "src\\components\\chat\\index.ts",
+      "src\\components\\layout\\index.ts",
+      "src\\components\\calendar\\index.ts",
+      "src\\pages\\Login\\components\\index.ts",
+      "src\\pages\\Configuracoes\\tabs\\index.ts",
+      "src\\main.tsx",
+      "src\\routes\\index.tsx",
+      "src\\pages\\Usuarios\\index.tsx",
+      "src\\pages\\MeuPerfil\\index.tsx",
+      "src\\pages\\Financeiro\\index.tsx",
+      "src\\pages\\Faturamento\\index.tsx",
+      "src\\pages\\Clientes\\index.tsx",
+      "src\\pages\\Auditoria\\index.tsx",
+      "src\\pages\\ApiDocs\\index.tsx",
+      "src\\pages\\Pacientes\\PacienteDetalhe\\index.tsx",
+      "src\\pages\\Financeiro\\Repasse\\index.tsx",
+      "src\\pages\\Financeiro\\NFsEmitidas\\index.tsx",
+      "src\\pages\\Financeiro\\ContasAReceber\\index.tsx",
+      "src\\pages\\Financeiro\\Cobranca\\index.tsx",
+      "src\\pages\\Faturamento\\PreFaturamento\\index.tsx",
+      "src\\pages\\Faturamento\\FaturamentosEmitidos\\index.tsx",
+      "src\\pages\\Clientes\\ClienteDetalhe\\index.tsx",
+      "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\Prontuario\\index.tsx",
+      "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\DadosPaciente\\index.tsx",
+      "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\Agendamentos\\index.tsx"
+    ]
+  },
+  "symbols": {
+    "classes": [
+      {
+        "name": "AppointmentsService",
+        "kind": "class",
+        "file": "src\\services\\appointments.service.ts",
+        "line": 185,
+        "exported": false
+      },
+      {
+        "name": "AuditService",
+        "kind": "class",
+        "file": "src\\services\\audit.service.ts",
+        "line": 183,
+        "exported": false
+      },
+      {
+        "name": "AvatarsService",
+        "kind": "class",
+        "file": "src\\services\\avatars.service.ts",
+        "line": 71,
+        "exported": false
+      },
+      {
+        "name": "BillingService",
+        "kind": "class",
+        "file": "src\\services\\billing.service.ts",
+        "line": 197,
+        "exported": false
+      },
+      {
+        "name": "ClientsService",
+        "kind": "class",
+        "file": "src\\services\\clients.service.ts",
+        "line": 175,
+        "exported": false
+      },
+      {
+        "name": "ConfigurationsService",
+        "kind": "class",
+        "file": "src\\services\\configurations.service.ts",
+        "line": 128,
+        "exported": false
+      },
+      {
+        "name": "DocumentsService",
+        "kind": "class",
+        "file": "src\\services\\documents.service.ts",
+        "line": 109,
+        "exported": false
+      },
+      {
+        "name": "FinancialService",
+        "kind": "class",
+        "file": "src\\services\\financial.service.ts",
+        "line": 296,
+        "exported": false
+      },
+      {
+        "name": "LoginSlidesService",
+        "kind": "class",
+        "file": "src\\services\\login-slides.service.ts",
+        "line": 99,
+        "exported": false
+      },
+      {
+        "name": "MedicalService",
+        "kind": "class",
+        "file": "src\\services\\medical.service.ts",
+        "line": 264,
+        "exported": false
+      },
+      {
+        "name": "NotificationsService",
+        "kind": "class",
+        "file": "src\\services\\notifications.service.ts",
+        "line": 86,
+        "exported": false
+      },
+      {
+        "name": "PatientsService",
+        "kind": "class",
+        "file": "src\\services\\patients.service.ts",
+        "line": 195,
+        "exported": false
+      },
+      {
+        "name": "UsersService",
+        "kind": "class",
+        "file": "src\\services\\users.service.ts",
+        "line": 116,
+        "exported": false
+      }
+    ],
+    "interfaces": [
+      {
+        "name": "AddToWaitlistData",
+        "kind": "interface",
+        "file": "src\\hooks\\useWaitlist.ts",
+        "line": 49,
+        "exported": true
+      },
+      {
+        "name": "AlterarPreFaturamentoForm",
+        "kind": "interface",
+        "file": "src\\types\\billing.ts",
+        "line": 39,
+        "exported": true
+      },
+      {
+        "name": "AnamneseDB",
+        "kind": "interface",
+        "file": "src\\services\\medical.service.ts",
+        "line": 70,
+        "exported": true
+      },
+      {
+        "name": "AnamneseFormatted",
+        "kind": "interface",
+        "file": "src\\services\\medical.service.ts",
+        "line": 146,
+        "exported": true
+      },
+      {
+        "name": "Anamnesis",
+        "kind": "interface",
+        "file": "src\\types\\medical-record.ts",
+        "line": 63,
+        "exported": true
+      },
+      {
+        "name": "AnexoMedicoDB",
+        "kind": "interface",
+        "file": "src\\services\\medical.service.ts",
+        "line": 86,
+        "exported": true
+      },
+      {
+        "name": "AnexoMedicoFormatted",
+        "kind": "interface",
+        "file": "src\\services\\medical.service.ts",
+        "line": 159,
+        "exported": true
+      },
+      {
+        "name": "ApiResponse",
+        "kind": "interface",
+        "file": "src\\services\\api.service.ts",
+        "line": 33,
+        "exported": true
+      },
+      {
+        "name": "Appointment",
+        "kind": "interface",
+        "file": "src\\types\\index.ts",
+        "line": 35,
+        "exported": true
+      },
+      {
+        "name": "Appointment",
+        "kind": "interface",
+        "file": "src\\services\\api.service.ts",
+        "line": 94,
+        "exported": true
+      },
+      {
+        "name": "AppointmentDB",
+        "kind": "interface",
+        "file": "src\\services\\appointments.service.ts",
+        "line": 22,
+        "exported": true
+      },
+      {
+        "name": "AppointmentFilters",
+        "kind": "interface",
+        "file": "src\\services\\appointments.service.ts",
+        "line": 148,
+        "exported": true
+      },
+      {
+        "name": "AppointmentFilters",
+        "kind": "interface",
+        "file": "src\\hooks\\useAppointments.ts",
+        "line": 84,
+        "exported": true
+      },
+      {
+        "name": "AppointmentFormatted",
+        "kind": "interface",
+        "file": "src\\services\\appointments.service.ts",
+        "line": 65,
+        "exported": true
+      },
+      {
+        "name": "AppointmentFormatted",
+        "kind": "interface",
+        "file": "src\\hooks\\useAppointments.ts",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "AppointmentFormData",
+        "kind": "interface",
+        "file": "src\\components\\modals\\CreateAppointmentModal.tsx",
+        "line": 24,
+        "exported": true
+      },
+      {
+        "name": "AuditFilters",
+        "kind": "interface",
+        "file": "src\\types\\audit.ts",
+        "line": 52,
+        "exported": true
+      },
+      {
+        "name": "AuditFilters",
+        "kind": "interface",
+        "file": "src\\services\\audit.service.ts",
+        "line": 105,
+        "exported": true
+      },
+      {
+        "name": "AuditLog",
+        "kind": "interface",
+        "file": "src\\types\\audit.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "AuditLogDB",
+        "kind": "interface",
+        "file": "src\\services\\audit.service.ts",
+        "line": 22,
+        "exported": true
+      },
+      {
+        "name": "AuditLogDetails",
+        "kind": "interface",
+        "file": "src\\types\\audit.ts",
+        "line": 44,
+        "exported": true
+      },
+      {
+        "name": "AuditLogFormatted",
+        "kind": "interface",
+        "file": "src\\services\\audit.service.ts",
+        "line": 43,
+        "exported": true
+      },
+      {
+        "name": "AvatarResponse",
+        "kind": "interface",
+        "file": "src\\services\\avatars.service.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "AvatarUploadResponse",
+        "kind": "interface",
+        "file": "src\\services\\avatars.service.ts",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "BadgeProps",
+        "kind": "interface",
+        "file": "src\\components\\ui\\badge.tsx",
+        "line": 29,
+        "exported": true
+      },
+      {
+        "name": "BaseService",
+        "kind": "interface",
+        "file": "src\\services\\types.ts",
+        "line": 56,
+        "exported": true
+      },
+      {
+        "name": "Billing",
+        "kind": "interface",
+        "file": "src\\types\\financial.ts",
+        "line": 22,
+        "exported": true
+      },
+      {
+        "name": "BillingFilters",
+        "kind": "interface",
+        "file": "src\\services\\billing.service.ts",
+        "line": 136,
+        "exported": true
+      },
+      {
+        "name": "BillingStats",
+        "kind": "interface",
+        "file": "src\\types\\financial.ts",
+        "line": 93,
+        "exported": true
+      },
+      {
+        "name": "BillingStats",
+        "kind": "interface",
+        "file": "src\\types\\billing.ts",
+        "line": 48,
+        "exported": true
+      },
+      {
+        "name": "BreadcrumbItem",
+        "kind": "interface",
+        "file": "src\\types\\index.ts",
+        "line": 78,
+        "exported": true
+      },
+      {
+        "name": "ButtonProps",
+        "kind": "interface",
+        "file": "src\\components\\ui\\button.tsx",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "CalendarEvent",
+        "kind": "interface",
+        "file": "src\\types\\index.ts",
+        "line": 117,
+        "exported": true
+      },
+      {
+        "name": "CashFlowData",
+        "kind": "interface",
+        "file": "src\\types\\financial.ts",
+        "line": 87,
+        "exported": true
+      },
+      {
+        "name": "ChatContact",
+        "kind": "interface",
+        "file": "src\\types\\index.ts",
+        "line": 89,
+        "exported": true
+      },
+      {
+        "name": "ChatConversation",
+        "kind": "interface",
+        "file": "src\\types\\index.ts",
+        "line": 108,
+        "exported": true
+      },
+      {
+        "name": "ChatDepartment",
+        "kind": "interface",
+        "file": "src\\types\\index.ts",
+        "line": 84,
+        "exported": true
+      },
+      {
+        "name": "ChatMessage",
+        "kind": "interface",
+        "file": "src\\types\\index.ts",
+        "line": 98,
+        "exported": true
+      },
+      {
+        "name": "Client",
+        "kind": "interface",
+        "file": "src\\types\\client.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "ClientDB",
+        "kind": "interface",
+        "file": "src\\services\\clients.service.ts",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "ClientFilters",
+        "kind": "interface",
+        "file": "src\\services\\clients.service.ts",
+        "line": 137,
+        "exported": true
+      },
+      {
+        "name": "ClientFormatted",
+        "kind": "interface",
+        "file": "src\\services\\clients.service.ts",
+        "line": 48,
+        "exported": true
+      },
+      {
+        "name": "ClientMetrics",
+        "kind": "interface",
+        "file": "src\\types\\client.ts",
+        "line": 42,
+        "exported": true
+      },
+      {
+        "name": "ClientMetricsDB",
+        "kind": "interface",
+        "file": "src\\services\\clients.service.ts",
+        "line": 33,
+        "exported": true
+      },
+      {
+        "name": "ClientMetricsFormatted",
+        "kind": "interface",
+        "file": "src\\services\\clients.service.ts",
+        "line": 66,
+        "exported": true
+      },
+      {
+        "name": "Clinica",
+        "kind": "interface",
+        "file": "src\\contexts\\AuthContext.tsx",
+        "line": 30,
+        "exported": true
+      },
+      {
+        "name": "ClinicalEvolution",
+        "kind": "interface",
+        "file": "src\\types\\medical-record.ts",
+        "line": 42,
+        "exported": true
+      },
+      {
+        "name": "ClinicContext",
+        "kind": "interface",
+        "file": "src\\services\\types.ts",
+        "line": 50,
+        "exported": true
+      },
+      {
+        "name": "Column",
+        "kind": "interface",
+        "file": "src\\components\\ui\\data-table.tsx",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "ComplianceReport",
+        "kind": "interface",
+        "file": "src\\types\\audit.ts",
+        "line": 33,
+        "exported": true
+      }
+    ],
+    "functions": [
+      {
+        "name": "AlterarPreFaturamentoModal",
+        "kind": "function",
+        "file": "src\\components\\modals\\AlterarPreFaturamentoModal.tsx",
+        "line": 42,
+        "exported": true
+      },
+      {
+        "name": "applyTestDataFilter",
+        "kind": "function",
+        "file": "src\\lib\\data-service.ts",
+        "line": 95,
+        "exported": true
+      },
+      {
+        "name": "AppointmentDetailsModal",
+        "kind": "function",
+        "file": "src\\components\\modals\\AppointmentDetailsModal.tsx",
+        "line": 58,
+        "exported": true
+      },
+      {
+        "name": "AuthProvider",
+        "kind": "function",
+        "file": "src\\contexts\\AuthContext.tsx",
+        "line": 154,
+        "exported": true
+      },
+      {
+        "name": "canAccessModule",
+        "kind": "function",
+        "file": "src\\config\\permissions.ts",
+        "line": 142,
+        "exported": true
+      },
+      {
+        "name": "cleanupTestData",
+        "kind": "function",
+        "file": "src\\lib\\supabase.ts",
+        "line": 106,
+        "exported": true
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "src\\lib\\utils.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "ComunicacaoTab",
+        "kind": "function",
+        "file": "src\\pages\\Configuracoes\\tabs\\ComunicacaoTab.tsx",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "ConfirmAbsenceModal",
+        "kind": "function",
+        "file": "src\\components\\modals\\ConfirmAbsenceModal.tsx",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "ConfirmArrivalModal",
+        "kind": "function",
+        "file": "src\\components\\modals\\ConfirmArrivalModal.tsx",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "ContatosTab",
+        "kind": "function",
+        "file": "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\DadosPaciente\\ContatosTab.tsx",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "DadosPacienteSection",
+        "kind": "function",
+        "file": "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\DadosPaciente\\index.tsx",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "DadosPessoaisTab",
+        "kind": "function",
+        "file": "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\DadosPaciente\\DadosPessoaisTab.tsx",
+        "line": 34,
+        "exported": true
+      },
+      {
+        "name": "DataProvider",
+        "kind": "function",
+        "file": "src\\contexts\\DataContext.tsx",
+        "line": 157,
+        "exported": true
+      },
+      {
+        "name": "DetalhesLogModal",
+        "kind": "function",
+        "file": "src\\components\\modals\\DetalhesLogModal.tsx",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "DiagnosticRPC",
+        "kind": "function",
+        "file": "src\\components\\DiagnosticRPC.tsx",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "EnderecoTab",
+        "kind": "function",
+        "file": "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\DadosPaciente\\EnderecoTab.tsx",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "error",
+        "kind": "function",
+        "file": "src\\services\\base.service.ts",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "EventBadge",
+        "kind": "function",
+        "file": "src\\components\\calendar\\EventBadge.tsx",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "FaturamentoTab",
+        "kind": "function",
+        "file": "src\\pages\\Configuracoes\\tabs\\FaturamentoTab.tsx",
+        "line": 40,
+        "exported": true
+      },
+      {
+        "name": "filterByStatus",
+        "kind": "function",
+        "file": "src\\services\\base.service.ts",
+        "line": 93,
+        "exported": true
+      },
+      {
+        "name": "FloatingButton",
+        "kind": "function",
+        "file": "src\\components\\ui\\floating-button.tsx",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "formatZodErrors",
+        "kind": "function",
+        "file": "src\\schemas\\patient.schema.ts",
+        "line": 97,
+        "exported": true
+      },
+      {
+        "name": "FormModal",
+        "kind": "function",
+        "file": "src\\components\\ui\\form-modal.tsx",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "FormRow",
+        "kind": "function",
+        "file": "src\\components\\ui\\form-row.tsx",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "generateId",
+        "kind": "function",
+        "file": "src\\services\\base.service.ts",
+        "line": 102,
+        "exported": true
+      },
+      {
+        "name": "getAvailableModules",
+        "kind": "function",
+        "file": "src\\config\\modules.ts",
+        "line": 209,
+        "exported": true
+      },
+      {
+        "name": "getAvailablePermissionsFor",
+        "kind": "function",
+        "file": "src\\lib\\constants.ts",
+        "line": 159,
+        "exported": true
+      },
+      {
+        "name": "getModuleByRoute",
+        "kind": "function",
+        "file": "src\\config\\modules.ts",
+        "line": 223,
+        "exported": true
+      },
+      {
+        "name": "getModuleBySlug",
+        "kind": "function",
+        "file": "src\\config\\modules.ts",
+        "line": 216,
+        "exported": true
+      },
+      {
+        "name": "getModulePermissions",
+        "kind": "function",
+        "file": "src\\config\\permissions.ts",
+        "line": 149,
+        "exported": true
+      },
+      {
+        "name": "getUserByEmail",
+        "kind": "function",
+        "file": "src\\test\\fixtures\\users.ts",
+        "line": 88,
+        "exported": true
+      },
+      {
+        "name": "getUserById",
+        "kind": "function",
+        "file": "src\\test\\fixtures\\users.ts",
+        "line": 84,
+        "exported": true
+      },
+      {
+        "name": "getUserByPerfil",
+        "kind": "function",
+        "file": "src\\test\\fixtures\\users.ts",
+        "line": 76,
+        "exported": true
+      },
+      {
+        "name": "getUsersByPerfil",
+        "kind": "function",
+        "file": "src\\test\\fixtures\\users.ts",
+        "line": 80,
+        "exported": true
+      },
+      {
+        "name": "hasPermission",
+        "kind": "function",
+        "file": "src\\config\\permissions.ts",
+        "line": 130,
+        "exported": true
+      },
+      {
+        "name": "hasTestDataColumn",
+        "kind": "function",
+        "file": "src\\lib\\data-service.ts",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "isModuleAvailable",
+        "kind": "function",
+        "file": "src\\config\\modules.ts",
+        "line": 178,
+        "exported": true
+      },
+      {
+        "name": "mapSupabaseUser",
+        "kind": "function",
+        "file": "src\\lib\\supabase.ts",
+        "line": 75,
+        "exported": true
+      },
+      {
+        "name": "ModalProvider",
+        "kind": "function",
+        "file": "src\\contexts\\ModalContext.tsx",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "NavigationCard",
+        "kind": "function",
+        "file": "src\\components\\ui\\navigation-card.tsx",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "NovoUsuarioModal",
+        "kind": "function",
+        "file": "src\\components\\modals\\NovoUsuarioModal.tsx",
+        "line": 30,
+        "exported": true
+      },
+      {
+        "name": "OperacionalTab",
+        "kind": "function",
+        "file": "src\\pages\\Configuracoes\\tabs\\OperacionalTab.tsx",
+        "line": 37,
+        "exported": true
+      },
+      {
+        "name": "PadraoTab",
+        "kind": "function",
+        "file": "src\\pages\\Configuracoes\\tabs\\PadraoTab.tsx",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "paginate",
+        "kind": "function",
+        "file": "src\\services\\base.service.ts",
+        "line": 33,
+        "exported": true
+      },
+      {
+        "name": "PlaceholderPage",
+        "kind": "function",
+        "file": "src\\pages\\Placeholder\\PlaceholderPage.tsx",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "prepareInsertData",
+        "kind": "function",
+        "file": "src\\lib\\data-service.ts",
+        "line": 38,
+        "exported": true
+      },
+      {
+        "name": "prepareInsertDataBatch",
+        "kind": "function",
+        "file": "src\\lib\\data-service.ts",
+        "line": 55,
+        "exported": true
+      },
+      {
+        "name": "ProntuarioSection",
+        "kind": "function",
+        "file": "src\\pages\\Pacientes\\PacienteDetalhe\\sections\\Prontuario\\index.tsx",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "queryWithTestFilter",
+        "kind": "function",
+        "file": "src\\lib\\data-service.ts",
+        "line": 72,
+        "exported": true
+      }
+    ],
+    "types": [
+      {
+        "name": "AppointmentStatus",
+        "kind": "type",
+        "file": "src\\types\\index.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "AppointmentStatusDB",
+        "kind": "type",
+        "file": "src\\services\\appointments.service.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "AppointmentStatusDB",
+        "kind": "type",
+        "file": "src\\hooks\\useAppointments.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "AuditActionDB",
+        "kind": "type",
+        "file": "src\\services\\audit.service.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "AuditActionType",
+        "kind": "type",
+        "file": "src\\types\\audit.ts",
+        "line": 2,
+        "exported": true
+      },
+      {
+        "name": "AuditTab",
+        "kind": "type",
+        "file": "src\\types\\audit.ts",
+        "line": 61,
+        "exported": true
+      },
+      {
+        "name": "AuthProvider",
+        "kind": "type",
+        "file": "src\\contexts\\AuthContext.tsx",
+        "line": 38,
+        "exported": true
+      },
+      {
+        "name": "AvailableModule",
+        "kind": "type",
+        "file": "src\\types\\client.ts",
+        "line": 72,
+        "exported": true
+      },
+      {
+        "name": "CalendarView",
+        "kind": "type",
+        "file": "src\\types\\index.ts",
+        "line": 136,
+        "exported": true
+      },
+      {
+        "name": "CanalNotificacao",
+        "kind": "type",
+        "file": "src\\services\\notifications.service.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "ClientQuickAction",
+        "kind": "type",
+        "file": "src\\types\\client.ts",
+        "line": 60,
+        "exported": true
+      },
+      {
+        "name": "ClientStatus",
+        "kind": "type",
+        "file": "src\\types\\client.ts",
+        "line": 2,
+        "exported": true
+      },
+      {
+        "name": "ClientStatusDB",
+        "kind": "type",
+        "file": "src\\services\\clients.service.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "CobrancaStatus",
+        "kind": "type",
+        "file": "src\\types\\financial.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "ContaReceberStatusDB",
+        "kind": "type",
+        "file": "src\\services\\financial.service.ts",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "CreateAppointmentInput",
+        "kind": "type",
+        "file": "src\\hooks\\useAppointments.ts",
+        "line": 68,
+        "exported": true
+      },
+      {
+        "name": "CreatePatientInput",
+        "kind": "type",
+        "file": "src\\schemas\\patient.schema.ts",
+        "line": 92,
+        "exported": true
+      },
+      {
+        "name": "CreatePatientInput",
+        "kind": "type",
+        "file": "src\\hooks\\usePatients.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "EvolutionStageStatus",
+        "kind": "type",
+        "file": "src\\types\\medical-record.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "FaturaEmitidaStatus",
+        "kind": "type",
+        "file": "src\\types\\billing.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "FaturaStatusDB",
+        "kind": "type",
+        "file": "src\\services\\billing.service.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "ListingModalAction",
+        "kind": "type",
+        "file": "src\\hooks\\useListingPage.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "MaritalStatus",
+        "kind": "type",
+        "file": "src\\types\\patient.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "ModalType",
+        "kind": "type",
+        "file": "src\\contexts\\ModalContext.tsx",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "ModuleStatus",
+        "kind": "type",
+        "file": "src\\config\\modules.ts",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "NotificationChannelDB",
+        "kind": "type",
+        "file": "src\\hooks\\useNotifications.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "NotificationStatusDB",
+        "kind": "type",
+        "file": "src\\hooks\\useNotifications.ts",
+        "line": 21,
+        "exported": true
+      },
+      {
+        "name": "NotificationTypeDB",
+        "kind": "type",
+        "file": "src\\hooks\\useNotifications.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "PageSizeOption",
+        "kind": "type",
+        "file": "src\\config\\pagination.ts",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "PatientGender",
+        "kind": "type",
+        "file": "src\\types\\patient.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "PatientStatus",
+        "kind": "type",
+        "file": "src\\types\\patient.ts",
+        "line": 82,
+        "exported": true
+      },
+      {
+        "name": "PatientStatus",
+        "kind": "type",
+        "file": "src\\types\\index.ts",
+        "line": 139,
+        "exported": true
+      },
+      {
+        "name": "PatientStatus",
+        "kind": "type",
+        "file": "src\\schemas\\patient.schema.ts",
+        "line": 94,
+        "exported": true
+      },
+      {
+        "name": "PaymentStatus",
+        "kind": "type",
+        "file": "src\\types\\financial.ts",
+        "line": 2,
+        "exported": true
+      },
+      {
+        "name": "PerfilTipo",
+        "kind": "type",
+        "file": "src\\config\\permissions.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "PerfilTipoDB",
+        "kind": "type",
+        "file": "src\\services\\users.service.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "PermissionAction",
+        "kind": "type",
+        "file": "src\\config\\permissions.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "PermissionLevel",
+        "kind": "type",
+        "file": "src\\types\\user.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "PreFaturamentoStatus",
+        "kind": "type",
+        "file": "src\\types\\billing.ts",
+        "line": 2,
+        "exported": true
+      },
+      {
+        "name": "RepasseStatus",
+        "kind": "type",
+        "file": "src\\types\\financial.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "RepasseStatusDB",
+        "kind": "type",
+        "file": "src\\services\\financial.service.ts",
+        "line": 92,
+        "exported": true
+      },
+      {
+        "name": "SelectOption",
+        "kind": "type",
+        "file": "src\\lib\\constants.ts",
+        "line": 56,
+        "exported": true
+      },
+      {
+        "name": "StatusNotificacao",
+        "kind": "type",
+        "file": "src\\services\\notifications.service.ts",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "StatusType",
+        "kind": "type",
+        "file": "src\\lib\\constants.ts",
+        "line": 201,
+        "exported": true
+      },
+      {
+        "name": "SupabaseUser",
+        "kind": "type",
+        "file": "src\\lib\\supabase.ts",
+        "line": 65,
+        "exported": true
+      },
+      {
+        "name": "TextareaProps",
+        "kind": "type",
+        "file": "src\\components\\ui\\textarea.tsx",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "TipoNotificacao",
+        "kind": "type",
+        "file": "src\\services\\notifications.service.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "TreatmentStatus",
+        "kind": "type",
+        "file": "src\\types\\medical-record.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "UpdateAppointmentInput",
+        "kind": "type",
+        "file": "src\\hooks\\useAppointments.ts",
+        "line": 80,
+        "exported": true
+      },
+      {
+        "name": "UpdatePatientInput",
+        "kind": "type",
+        "file": "src\\schemas\\patient.schema.ts",
+        "line": 93,
+        "exported": true
+      }
+    ],
+    "enums": []
+  },
+  "publicAPI": [
+    {
+      "name": "AddToWaitlistData",
+      "kind": "interface",
+      "file": "src\\hooks\\useWaitlist.ts",
+      "line": 49,
+      "exported": true
+    },
+    {
+      "name": "AlterarPreFaturamentoForm",
+      "kind": "interface",
+      "file": "src\\types\\billing.ts",
+      "line": 39,
+      "exported": true
+    },
+    {
+      "name": "AlterarPreFaturamentoModal",
+      "kind": "function",
+      "file": "src\\components\\modals\\AlterarPreFaturamentoModal.tsx",
+      "line": 42,
+      "exported": true
+    },
+    {
+      "name": "AnamneseDB",
+      "kind": "interface",
+      "file": "src\\services\\medical.service.ts",
+      "line": 70,
+      "exported": true
+    },
+    {
+      "name": "AnamneseFormatted",
+      "kind": "interface",
+      "file": "src\\services\\medical.service.ts",
+      "line": 146,
+      "exported": true
+    },
+    {
+      "name": "Anamnesis",
+      "kind": "interface",
+      "file": "src\\types\\medical-record.ts",
+      "line": 63,
+      "exported": true
+    },
+    {
+      "name": "AnexoMedicoDB",
+      "kind": "interface",
+      "file": "src\\services\\medical.service.ts",
+      "line": 86,
+      "exported": true
+    },
+    {
+      "name": "AnexoMedicoFormatted",
+      "kind": "interface",
+      "file": "src\\services\\medical.service.ts",
+      "line": 159,
+      "exported": true
+    },
+    {
+      "name": "ApiResponse",
+      "kind": "interface",
+      "file": "src\\services\\api.service.ts",
+      "line": 33,
+      "exported": true
+    },
+    {
+      "name": "applyTestDataFilter",
+      "kind": "function",
+      "file": "src\\lib\\data-service.ts",
+      "line": 95,
+      "exported": true
+    },
+    {
+      "name": "Appointment",
+      "kind": "interface",
+      "file": "src\\types\\index.ts",
+      "line": 35,
+      "exported": true
+    },
+    {
+      "name": "Appointment",
+      "kind": "interface",
+      "file": "src\\services\\api.service.ts",
+      "line": 94,
+      "exported": true
+    },
+    {
+      "name": "AppointmentDB",
+      "kind": "interface",
+      "file": "src\\services\\appointments.service.ts",
+      "line": 22,
+      "exported": true
+    },
+    {
+      "name": "AppointmentDetailsModal",
+      "kind": "function",
+      "file": "src\\components\\modals\\AppointmentDetailsModal.tsx",
+      "line": 58,
+      "exported": true
+    },
+    {
+      "name": "AppointmentFilters",
+      "kind": "interface",
+      "file": "src\\services\\appointments.service.ts",
+      "line": 148,
+      "exported": true
+    },
+    {
+      "name": "AppointmentFilters",
+      "kind": "interface",
+      "file": "src\\hooks\\useAppointments.ts",
+      "line": 84,
+      "exported": true
+    },
+    {
+      "name": "AppointmentFormatted",
+      "kind": "interface",
+      "file": "src\\services\\appointments.service.ts",
+      "line": 65,
+      "exported": true
+    },
+    {
+      "name": "AppointmentFormatted",
+      "kind": "interface",
+      "file": "src\\hooks\\useAppointments.ts",
+      "line": 28,
+      "exported": true
+    },
+    {
+      "name": "AppointmentFormData",
+      "kind": "interface",
+      "file": "src\\components\\modals\\CreateAppointmentModal.tsx",
+      "line": 24,
+      "exported": true
+    },
+    {
+      "name": "AppointmentStatus",
+      "kind": "type",
+      "file": "src\\types\\index.ts",
+      "line": 20,
+      "exported": true
+    },
+    {
+      "name": "AppointmentStatusDB",
+      "kind": "type",
+      "file": "src\\services\\appointments.service.ts",
+      "line": 11,
+      "exported": true
+    },
+    {
+      "name": "AppointmentStatusDB",
+      "kind": "type",
+      "file": "src\\hooks\\useAppointments.ts",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "AuditActionDB",
+      "kind": "type",
+      "file": "src\\services\\audit.service.ts",
+      "line": 11,
+      "exported": true
+    },
+    {
+      "name": "AuditActionType",
+      "kind": "type",
+      "file": "src\\types\\audit.ts",
+      "line": 2,
+      "exported": true
+    },
+    {
+      "name": "AuditFilters",
+      "kind": "interface",
+      "file": "src\\types\\audit.ts",
+      "line": 52,
+      "exported": true
+    },
+    {
+      "name": "AuditFilters",
+      "kind": "interface",
+      "file": "src\\services\\audit.service.ts",
+      "line": 105,
+      "exported": true
+    },
+    {
+      "name": "AuditLog",
+      "kind": "interface",
+      "file": "src\\types\\audit.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "AuditLogDB",
+      "kind": "interface",
+      "file": "src\\services\\audit.service.ts",
+      "line": 22,
+      "exported": true
+    },
+    {
+      "name": "AuditLogDetails",
+      "kind": "interface",
+      "file": "src\\types\\audit.ts",
+      "line": 44,
+      "exported": true
+    },
+    {
+      "name": "AuditLogFormatted",
+      "kind": "interface",
+      "file": "src\\services\\audit.service.ts",
+      "line": 43,
+      "exported": true
+    },
+    {
+      "name": "AuditTab",
+      "kind": "type",
+      "file": "src\\types\\audit.ts",
+      "line": 61,
+      "exported": true
+    },
+    {
+      "name": "AuthProvider",
+      "kind": "type",
+      "file": "src\\contexts\\AuthContext.tsx",
+      "line": 38,
+      "exported": true
+    },
+    {
+      "name": "AuthProvider",
+      "kind": "function",
+      "file": "src\\contexts\\AuthContext.tsx",
+      "line": 154,
+      "exported": true
+    },
+    {
+      "name": "AvailableModule",
+      "kind": "type",
+      "file": "src\\types\\client.ts",
+      "line": 72,
+      "exported": true
+    },
+    {
+      "name": "AvatarResponse",
+      "kind": "interface",
+      "file": "src\\services\\avatars.service.ts",
+      "line": 18,
+      "exported": true
+    },
+    {
+      "name": "AvatarUploadResponse",
+      "kind": "interface",
+      "file": "src\\services\\avatars.service.ts",
+      "line": 13,
+      "exported": true
+    },
+    {
+      "name": "BadgeProps",
+      "kind": "interface",
+      "file": "src\\components\\ui\\badge.tsx",
+      "line": 29,
+      "exported": true
+    },
+    {
+      "name": "BaseService",
+      "kind": "interface",
+      "file": "src\\services\\types.ts",
+      "line": 56,
+      "exported": true
+    },
+    {
+      "name": "Billing",
+      "kind": "interface",
+      "file": "src\\types\\financial.ts",
+      "line": 22,
+      "exported": true
+    },
+    {
+      "name": "BillingFilters",
+      "kind": "interface",
+      "file": "src\\services\\billing.service.ts",
+      "line": 136,
+      "exported": true
+    },
+    {
+      "name": "BillingStats",
+      "kind": "interface",
+      "file": "src\\types\\financial.ts",
+      "line": 93,
+      "exported": true
+    },
+    {
+      "name": "BillingStats",
+      "kind": "interface",
+      "file": "src\\types\\billing.ts",
+      "line": 48,
+      "exported": true
+    },
+    {
+      "name": "BreadcrumbItem",
+      "kind": "interface",
+      "file": "src\\types\\index.ts",
+      "line": 78,
+      "exported": true
+    },
+    {
+      "name": "ButtonProps",
+      "kind": "interface",
+      "file": "src\\components\\ui\\button.tsx",
+      "line": 36,
+      "exported": true
+    },
+    {
+      "name": "CalendarEvent",
+      "kind": "interface",
+      "file": "src\\types\\index.ts",
+      "line": 117,
+      "exported": true
+    },
+    {
+      "name": "CalendarView",
+      "kind": "type",
+      "file": "src\\types\\index.ts",
+      "line": 136,
+      "exported": true
+    },
+    {
+      "name": "canAccessModule",
+      "kind": "function",
+      "file": "src\\config\\permissions.ts",
+      "line": 142,
+      "exported": true
+    },
+    {
+      "name": "CanalNotificacao",
+      "kind": "type",
+      "file": "src\\services\\notifications.service.ts",
+      "line": 20,
+      "exported": true
+    },
+    {
+      "name": "CashFlowData",
+      "kind": "interface",
+      "file": "src\\types\\financial.ts",
+      "line": 87,
+      "exported": true
+    },
+    {
+      "name": "ChatContact",
+      "kind": "interface",
+      "file": "src\\types\\index.ts",
+      "line": 89,
+      "exported": true
+    }
+  ],
+  "dependencies": {
+    "mostImported": [
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\services\\types.ts",
+        "importedBy": 13
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\services\\base.service.ts",
+        "importedBy": 10
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\services\\api.service.ts",
+        "importedBy": 3
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\components\\ui\\button.tsx",
+        "importedBy": 3
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\components\\modals\\ConfirmationModal.tsx",
+        "importedBy": 3
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\config\\permissions.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\components\\ui\\skeleton.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\components\\ui\\bottom-sheet.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\components\\ui\\input.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\types\\medical-record.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\services\\medical.service.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\lib\\supabase.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\hooks\\usePatients.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\hooks\\useProfessionals.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\hooks\\useServices.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\hooks\\useInsurances.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\config\\modules.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\routes",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\contexts/index.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "C:\\Users\\dsoliveira\\Documents\\Github\\dizevolv\\allyra\\allyra-saas\\src\\contexts\\AuthContext.tsx",
+        "importedBy": 1
+      }
+    ]
+  },
+  "stats": {
+    "totalSymbols": 745,
+    "exportedSymbols": 343,
+    "analysisTimeMs": 2065
+  }
+}

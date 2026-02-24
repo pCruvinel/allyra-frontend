@@ -1,0 +1,77 @@
+# Arquivos sensíveis e de configuração local
+acessos.md
+*acessos.md
+acessos.md/
+*/acessos.md
+.env
+.env.local
+.env.*.local
+*.service_role.key
+nul
+null
+DADOS_TESTE.txt
+
+# Backups e configs locais
+.backups/
+.claude/
+CLAUDE.md
+
+# API Node.js agora está em repositório separado: allyra-api
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+build/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Testes
+coverage/
+.nyc_output/
+
+# Database local
+*.sqlite
+*.sqlite3
+*.db
+
+# Supabase local
+.supabase/
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+.cache/
+.temp/
+.tmp/
+nul
+null
+
+pre-building.md
+/pre-building.md
+*pre-building.md
+*/pre-building.md

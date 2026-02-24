@@ -1,0 +1,443 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+    --primary: 263 70% 76%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 264 5% 95%;
+    --secondary-foreground: 263 70% 10%;
+    --muted: 240 5% 93%;
+    --muted-foreground: 240 4% 45%;
+    --accent: 240 5% 91%;
+    --accent-foreground: 263 70% 10%;
+    --destructive: 350 80% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 263 70% 76%;
+    --radius: 0.625rem;
+
+    /* Sidebar */
+    --sidebar: 0 0% 99%;
+    --sidebar-foreground: 240 10% 4%;
+    --sidebar-primary: 263 70% 10%;
+    --sidebar-primary-foreground: 0 0% 99%;
+    --sidebar-accent: 240 5% 97%;
+    --sidebar-accent-foreground: 240 10% 10%;
+    --sidebar-border: 240 5% 90%;
+    --sidebar-ring: 240 5% 65%;
+
+    /* White Label Brand Colors - Customizable per clinic */
+    --brand-primary: #a78bfa;
+    --brand-primary-hover: #8b5cf6;
+    --brand-primary-light: #f5f3ff;
+    --brand-primary-accent: #ede9fe;
+
+    /* Semantic Colors */
+    --color-success: #10b981;
+    --color-warning: #ffc107;
+    --color-error: #dc3545;
+
+    /* Text Colors */
+    --color-text-primary: #0c111d;
+    --color-text-secondary: #888599;
+
+    /* Border Colors */
+    --color-border-light: #e8e8ef;
+    --color-border-default: #d2d2dc;
+
+    /* Status Colors */
+    --color-status-active: #b3ff7b;
+    --color-status-active-text: #3b3b3b;
+
+    /* Input */
+    --input-background: #f3f3f5;
+    --switch-background: #cbced4;
+
+    /* Chart Colors */
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 240 10% 5%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 263 70% 76%;
+    --primary-foreground: 240 10% 10%;
+    --secondary: 240 6% 14%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 240 6% 12%;
+    --muted-foreground: 240 5% 60%;
+    --accent: 240 6% 14%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 0 0% 97%;
+    --border: 240 6% 18%;
+    --input: 240 6% 14%;
+    --ring: 263 50% 50%;
+
+    /* Sidebar */
+    --sidebar: 240 10% 6%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 263 70% 76%;
+    --sidebar-primary-foreground: 0 0% 97%;
+    --sidebar-accent: 240 6% 14%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 6% 16%;
+    --sidebar-ring: 263 50% 50%;
+
+    /* Dark mode overrides for brand colors */
+    --brand-primary-light: rgba(167, 139, 250, 0.12);
+    --color-text-primary: #f0f0f5;
+    --color-text-secondary: #9898a8;
+    --color-border-light: #262638;
+    --color-border-default: #363648;
+
+    /* Input */
+    --input-background: #1a1a2a;
+    --switch-background: #363648;
+
+    /* Chart Colors */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Dark mode color scheme */
+.dark {
+  color-scheme: dark;
+}
+
+/* Dark mode overrides for hardcoded colors */
+html.dark .bg-white,
+html.dark div.bg-white,
+html.dark button.bg-white {
+  background-color: #12121e !important;
+}
+
+html.dark .bg-gray-50,
+html.dark div.bg-gray-50 {
+  background-color: #181828 !important;
+}
+
+html.dark .bg-gray-100,
+html.dark div.bg-gray-100 {
+  background-color: #1e1e2e !important;
+}
+
+/* Primary/10 background for dark mode */
+html.dark .bg-primary\/10,
+html.dark div.bg-primary\/10 {
+  background-color: rgba(167, 139, 250, 0.15) !important;
+}
+
+/* Text colors for dark mode */
+html.dark .text-gray-400 {
+  color: #9898a8 !important;
+}
+
+html.dark .text-gray-500 {
+  color: #a8a8b8 !important;
+}
+
+html.dark .text-gray-600 {
+  color: #b8b8c8 !important;
+}
+
+html.dark .text-gray-700 {
+  color: #c8c8d8 !important;
+}
+
+html.dark .text-gray-800 {
+  color: #d8d8e8 !important;
+}
+
+html.dark .text-gray-900 {
+  color: #e8e8ef !important;
+}
+
+html.dark .text-black,
+html.dark span.text-black,
+html.dark div.text-black,
+html.dark p.text-black {
+  color: #e8e8ef !important;
+}
+
+/* Border colors for dark mode */
+html.dark .border-gray-100 {
+  border-color: #2a2a3a !important;
+}
+
+html.dark .border-gray-200 {
+  border-color: #2a2a3a !important;
+}
+
+html.dark .border-gray-300 {
+  border-color: #3a3a4a !important;
+}
+
+/* Hover states for dark mode */
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #1e1e2e !important;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #1e1e2e !important;
+}
+
+html.dark .hover\:bg-white:hover {
+  background-color: #181828 !important;
+}
+
+/* Input styles for dark mode */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1a1a2a !important;
+  color: #f0f0f5 !important;
+  border-color: #2e2e3e !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #6a6a7a !important;
+}
+
+/* Focus states for inputs in dark mode */
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: rgba(167, 139, 250, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.15) !important;
+}
+
+/* Soft borders and lines - Light mode */
+@layer components {
+  /* Soft dividers */
+  .divider-soft {
+    @apply border-border/40;
+  }
+
+  /* Soft card borders */
+  .card-soft {
+    @apply border border-border/30 shadow-sm;
+  }
+
+  /* Soft table rows */
+  .table-row-soft {
+    @apply border-b border-border/20;
+  }
+
+  /* Soft input borders */
+  .input-soft {
+    @apply border-border/50 focus:border-primary/50;
+  }
+}
+
+/* Global soft borders */
+hr {
+  @apply border-border/30;
+}
+
+/* Softer divider lines in tables and lists */
+.dark hr {
+  @apply border-border/20;
+}
+
+/* Card shadows - more subtle */
+.shadow-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.dark .shadow-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, select, textarea {
+  @apply transition-all duration-200;
+}
+
+/* Softer focus rings */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary/30 ring-offset-1 ring-offset-background;
+}
+
+/* Dark mode card and surface improvements */
+.dark .bg-card {
+  background-color: hsl(240 10% 6%) !important;
+}
+
+.dark .bg-muted {
+  background-color: hsl(240 6% 10%) !important;
+}
+
+.dark .bg-muted\/50 {
+  background-color: hsl(240 6% 10% / 0.5) !important;
+}
+
+.dark .bg-muted\/30 {
+  background-color: hsl(240 6% 10% / 0.3) !important;
+}
+
+/* Sidebar dark mode refinements */
+.dark .bg-sidebar {
+  background-color: hsl(240 10% 6%) !important;
+}
+
+/* Activity timeline lines */
+.timeline-line {
+  @apply bg-border/30;
+}
+
+.dark .timeline-line {
+  @apply bg-border/20;
+}
+
+/* ===========================
+   Minimalist Scrollbar Utility
+   =========================== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.4);
+}
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+/* ===========================
+   Print Styles - PDF Export
+   =========================== */
+@media print {
+  /* Ocultar elementos de navegação sempre */
+  header,
+  nav,
+  aside,
+  footer,
+  .sidebar,
+  .print-hidden,
+  [data-sidebar],
+  [data-print-hidden] {
+    display: none !important;
+  }
+
+  /* Quando o body tem a classe printing-pdf (portal ativo) */
+  body.printing-pdf > *:not(#pdf-print-portal) {
+    display: none !important;
+  }
+
+  body.printing-pdf {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Portal de impressão PDF */
+  #pdf-print-portal {
+    display: block !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    z-index: 99999 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  #pdf-print-portal * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Fallback: Quando há um relatório PDF para imprimir (sem portal) */
+  body:has(#pdf-report-content):not(.printing-pdf) #root > * {
+    display: none !important;
+  }
+
+  #pdf-report-content {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 20mm !important;
+    background: white !important;
+    z-index: 99999 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  #pdf-report-content * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Page break control */
+  .break-inside-avoid {
+    break-inside: avoid;
+  }
+
+  /* Reset transforms */
+  #pdf-print-portal *,
+  #pdf-report-content * {
+    transform: none !important;
+  }
+
+  /* Configurações da página */
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}
