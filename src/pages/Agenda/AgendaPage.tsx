@@ -11,6 +11,7 @@ import { HorariosVagosModal } from '@/components/modals/HorariosVagosModal'
 import { OrcamentosTab } from './OrcamentosTab'
 import { RecepcaoTab } from './RecepcaoTab'
 import { useModal } from '@/contexts'
+import { useAuth } from '@/contexts/AuthContext'
 import { useAppointments, useProfessionals } from '@/hooks'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,7 @@ const statusMap: Record<string, CalendarEvent['status']> = {
 
 export function AgendaPage() {
   const { openModal } = useModal()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<AgendaTab>('calendario')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedProfessional, setSelectedProfessional] = useState<string>('')
@@ -226,18 +228,22 @@ export function AgendaPage() {
             <Calendar className="w-4 h-4" />
             Calendário
           </button>
-          <button
-            onClick={() => setActiveTab('recepcao')}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-              activeTab === 'recepcao'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-            )}
-          >
-            <Users className="w-4 h-4" />
-            Recepção
-          </button>
+          
+          {['secretaria', 'administrador_total', 'admin_master'].includes(user?.perfil_tipo ?? '') && (
+            <button
+              onClick={() => setActiveTab('recepcao')}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                activeTab === 'recepcao'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+            >
+              <Users className="w-4 h-4" />
+              Recepção
+            </button>
+          )}
+
           <button
             onClick={() => setActiveTab('orcamentos')}
             className={cn(

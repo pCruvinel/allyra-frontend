@@ -36,7 +36,7 @@ export function CalendarCell({
         }
       }}
       className={cn(
-        'min-h-[100px] p-2 border border-border text-left transition-colors hover:bg-muted/50 cursor-pointer',
+        'min-h-[120px] xl:min-h-[140px] p-2 border border-border text-left transition-colors hover:bg-muted/50 cursor-pointer',
         isToday && 'bg-primary/10',
         !isCurrentMonth && 'bg-muted/30'
       )}
