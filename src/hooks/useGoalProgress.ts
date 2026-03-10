@@ -31,14 +31,14 @@ interface UseProgressReturn {
   error: string | null
   total: number
   fetchProgress: () => Promise<void>
-  registerProgress: (data: Omit<CreateProgressInput, 'meta_id' | 'clinica_id'>) => Promise<GoalProgress | null>
+  registerProgress: (data: Omit<CreateProgressInput, 'meta_id' | 'clinica_id' | 'profissional_id'>) => Promise<GoalProgress | null>
   refresh: () => Promise<void>
   setGoalId: (goalId: string) => void
 }
 
 export function useGoalProgress(options: UseProgressOptions = {}): UseProgressReturn {
   const { autoFetch = true, goalId: initialGoalId } = options
-  const { currentClinica } = useAuth()
+  const { currentClinica, user } = useAuth()
 
   const [goalId, setGoalId] = useState<string | undefined>(initialGoalId)
   const [progress, setProgress] = useState<GoalProgress[]>([])
@@ -80,7 +80,7 @@ export function useGoalProgress(options: UseProgressOptions = {}): UseProgressRe
 
   // Registra progresso
   const registerProgress = useCallback(async (
-    data: Omit<CreateProgressInput, 'meta_id' | 'clinica_id'>
+    data: Omit<CreateProgressInput, 'meta_id' | 'clinica_id' | 'profissional_id'>
   ): Promise<GoalProgress | null> => {
     if (!goalId) {
       toast.error('Meta não selecionada')
@@ -92,12 +92,18 @@ export function useGoalProgress(options: UseProgressOptions = {}): UseProgressRe
       return null
     }
 
+    if (!user?.id) {
+      toast.error('Profissional não autenticado')
+      return null
+    }
+
     setIsLoading(true)
 
     try {
       const result = await goalsService.registerProgress(goalId, {
         ...data,
         clinica_id: currentClinica.id,
+        profissional_id: user.id,
       })
 
       if (result.error) {
@@ -115,7 +121,7 @@ export function useGoalProgress(options: UseProgressOptions = {}): UseProgressRe
     } finally {
       setIsLoading(false)
     }
-  }, [goalId, currentClinica?.id, fetchProgress])
+  }, [goalId, currentClinica?.id, fetchProgress, user?.id])
 
   // Refresh helper
   const refresh = useCallback(async () => {

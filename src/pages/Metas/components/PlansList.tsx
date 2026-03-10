@@ -3,9 +3,11 @@
  * Padrões UI: cards com borda colorida por status, hover states
  */
 
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Edit2, Trash2, Share2, MoreVertical, Calendar, Target, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ConfirmationModal } from '@/components/modals/ConfirmationModal'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,8 +42,19 @@ export function PlansList({
   onDeletePlan,
   onSharePlan,
 }: PlansListProps) {
+  const [planToDelete, setPlanToDelete] = useState<TherapeuticPlan | null>(null)
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('pt-BR')
+  }
+
+  const handleConfirmDeletePlan = () => {
+    if (!planToDelete) {
+      return
+    }
+
+    onDeletePlan(planToDelete.id)
+    setPlanToDelete(null)
   }
 
   return (
@@ -138,7 +151,7 @@ export function PlansList({
                   <DropdownMenuItem
                     onClick={(e: React.MouseEvent) => {
                       e.stopPropagation()
-                      onDeletePlan(plan.id)
+                      setPlanToDelete(plan)
                     }}
                     className="text-destructive focus:text-destructive"
                   >
@@ -151,6 +164,23 @@ export function PlansList({
           </div>
         ))}
       </div>
+
+      <ConfirmationModal
+        isOpen={!!planToDelete}
+        onClose={() => setPlanToDelete(null)}
+        onConfirm={handleConfirmDeletePlan}
+        title="Excluir plano terapêutico"
+        heading="Confirme a exclusão"
+        description={
+          planToDelete
+            ? `O plano "${planToDelete.nome}" será removido permanentemente. Esta ação não pode ser desfeita.`
+            : ''
+        }
+        confirmLabel="Excluir plano"
+        cancelLabel="Cancelar"
+        variant="danger"
+        headerColor="danger"
+      />
     </div>
   )
 }

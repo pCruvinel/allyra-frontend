@@ -1,20 +1,10 @@
 /**
  * Types para o Modo Stand-alone do Módulo de Metas Terapêuticas
  * Usado quando o módulo é vendido/usado de forma avulsa, sem integração com o ERP
+ *
+ * NOTA: Tipos de Paciente removidos na unificação SSOT.
+ * Pacientes agora são gerenciados exclusivamente pela tabela global `pacientes`.
  */
-
-// Paciente cadastrado manualmente no modo stand-alone
-export interface StandalonePatient {
-  id: string
-  nome: string
-  dataNascimento?: string
-  idade?: number
-  responsavel?: string
-  telefone?: string
-  status: 'ativo' | 'inativo'
-  createdAt: string
-  updatedAt?: string
-}
 
 // Registro de atendimento/falta manual
 export interface StandaloneAttendance {
@@ -26,14 +16,6 @@ export interface StandaloneAttendance {
   tipo: 'presente' | 'ausente'
   observacoes?: string
   createdAt: string
-}
-
-// Formulário de criação/edição de paciente
-export interface StandalonePatientFormData {
-  nome: string
-  dataNascimento?: string
-  responsavel?: string
-  telefone?: string
 }
 
 // Formulário de registro de atendimento
@@ -54,7 +36,6 @@ export interface MetasModeConfig {
 // Constantes para localStorage
 export const STORAGE_KEYS = {
   MODE: 'allyra_metas_standalone_mode',
-  PATIENTS: 'allyra_metas_standalone_patients',
   ATTENDANCE: 'allyra_metas_standalone_attendance',
   ONBOARDING_DISMISSED: 'allyra_metas_onboarding_dismissed',
 } as const

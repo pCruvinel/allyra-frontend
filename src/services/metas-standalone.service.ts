@@ -1,52 +1,12 @@
 /**
  * Serviço para comunicação com a API do módulo Metas Stand-alone
+ *
+ * NOTA: Seção PACIENTES removida na unificação SSOT.
+ * Pacientes agora são gerenciados exclusivamente pela tabela global `pacientes`
+ * e consumidos via `usePatients` hook.
  */
 
 import { apiService } from './api.service'
-
-// =====================================================
-// TIPOS - Pacientes Stand-alone
-// =====================================================
-
-export interface StandalonePatient {
-  id: string
-  clinica_id: string
-  nome: string
-  data_nascimento?: string
-  idade?: number
-  responsavel?: string
-  telefone?: string
-  email?: string
-  observacoes?: string
-  status: 'ativo' | 'inativo'
-  is_test_data?: boolean
-  created_at: string
-  updated_at?: string
-  created_by?: string
-}
-
-export interface CreateStandalonePatientInput {
-  clinica_id: string
-  nome: string
-  data_nascimento?: string
-  idade?: number
-  responsavel?: string
-  telefone?: string
-  email?: string
-  observacoes?: string
-  status?: 'ativo' | 'inativo'
-}
-
-export interface UpdateStandalonePatientInput {
-  nome?: string
-  data_nascimento?: string
-  idade?: number
-  responsavel?: string
-  telefone?: string
-  email?: string
-  observacoes?: string
-  status?: 'ativo' | 'inativo'
-}
 
 // =====================================================
 // TIPOS - Atendimentos Stand-alone
@@ -117,90 +77,6 @@ export interface PatientStats {
 // =====================================================
 
 export const metasStandaloneService = {
-  // =====================================================
-  // PACIENTES
-  // =====================================================
-
-  /**
-   * Lista pacientes stand-alone
-   */
-  async listPatients(
-    clinicaId: string,
-    filters?: { status?: 'ativo' | 'inativo'; search?: string }
-  ): Promise<{ data: StandalonePatient[]; count: number }> {
-    const params = new URLSearchParams({ clinica_id: clinicaId })
-
-    if (filters?.status) params.append('status', filters.status)
-    if (filters?.search) params.append('search', filters.search)
-
-    return apiService.get<{ data: StandalonePatient[]; count: number }>(
-      `/api/metas-standalone/patients?${params.toString()}`
-    )
-  },
-
-  /**
-   * Busca paciente por ID
-   */
-  async getPatientById(
-    id: string,
-    clinicaId: string
-  ): Promise<{ data: StandalonePatient }> {
-    return apiService.get<{ data: StandalonePatient }>(
-      `/api/metas-standalone/patients/${id}?clinica_id=${clinicaId}`
-    )
-  },
-
-  /**
-   * Cria paciente
-   */
-  async createPatient(
-    input: CreateStandalonePatientInput
-  ): Promise<{ data: StandalonePatient }> {
-    return apiService.post<{ data: StandalonePatient }>(
-      '/api/metas-standalone/patients',
-      input
-    )
-  },
-
-  /**
-   * Atualiza paciente
-   */
-  async updatePatient(
-    id: string,
-    clinicaId: string,
-    updates: UpdateStandalonePatientInput
-  ): Promise<{ data: StandalonePatient }> {
-    return apiService.put<{ data: StandalonePatient }>(
-      `/api/metas-standalone/patients/${id}`,
-      { clinica_id: clinicaId, ...updates }
-    )
-  },
-
-  /**
-   * Remove paciente
-   */
-  async deletePatient(
-    id: string,
-    clinicaId: string
-  ): Promise<{ success: boolean }> {
-    return apiService.delete<{ success: boolean }>(
-      `/api/metas-standalone/patients/${id}?clinica_id=${clinicaId}`
-    )
-  },
-
-  /**
-   * Alterna status do paciente
-   */
-  async togglePatientStatus(
-    id: string,
-    clinicaId: string
-  ): Promise<{ data: StandalonePatient }> {
-    return apiService.patch<{ data: StandalonePatient }>(
-      `/api/metas-standalone/patients/${id}/toggle-status`,
-      { clinica_id: clinicaId }
-    )
-  },
-
   // =====================================================
   // ATENDIMENTOS
   // =====================================================

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Modal, ModalBody, ModalFooter } from '@/components/ui/modal'
+import { parseDevolutivaNotes, readStoredDevolutivaNotes } from '../utils/devolutivaNotes'
 import type { TherapeuticPlan, GoalReport } from '@/types/goals'
 import type { PatientListItem } from '@/types/patient'
 
@@ -99,6 +100,10 @@ export function PdfPreview({ plan, patient, report }: PdfPreviewProps) {
     if (!date) return '-'
     return new Date(date).toLocaleDateString('pt-BR')
   }
+
+  const { technicalOpinion, recommendations } = parseDevolutivaNotes(
+    readStoredDevolutivaNotes(plan.id) ?? plan.observacoes
+  )
 
   return (
     <div className="space-y-6">
@@ -266,12 +271,23 @@ export function PdfPreview({ plan, patient, report }: PdfPreviewProps) {
                 atingindo {report.estatisticas.metasAtingidas} de {report.estatisticas.totalMetas} metas
                 estabelecidas ({report.estatisticas.taxaSucesso.toFixed(0)}% de sucesso).
               </p>
-              <p className="text-sm text-foreground leading-relaxed">
-                Recomenda-se a continuidade do tratamento com foco nas metas em andamento,
-                mantendo os exercícios domiciliares e o acompanhamento regular.
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {recommendations ||
+                  'Recomenda-se a continuidade do tratamento com foco nas metas em andamento, mantendo os exercícios domiciliares e o acompanhamento regular.'}
               </p>
             </div>
           </div>
+
+          {technicalOpinion && (
+            <div className="mb-8">
+              <h3 className="font-semibold text-lg text-foreground mb-3">Parecer Técnico</h3>
+              <div className="bg-muted/30 rounded-lg p-4">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                  {technicalOpinion}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Footer */}
           <div
@@ -563,12 +579,23 @@ export function PdfPreview({ plan, patient, report }: PdfPreviewProps) {
                     atingindo {report.estatisticas.metasAtingidas} de {report.estatisticas.totalMetas} metas
                     estabelecidas ({report.estatisticas.taxaSucesso.toFixed(0)}% de sucesso).
                   </p>
-                  <p className="text-sm text-gray-900 leading-relaxed">
-                    Recomenda-se a continuidade do tratamento com foco nas metas em andamento,
-                    mantendo os exercícios domiciliares e o acompanhamento regular.
+                  <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                    {recommendations ||
+                      'Recomenda-se a continuidade do tratamento com foco nas metas em andamento, mantendo os exercícios domiciliares e o acompanhamento regular.'}
                   </p>
                 </div>
               </div>
+
+              {technicalOpinion && (
+                <div className="mb-8">
+                  <h3 className="font-semibold text-lg text-gray-900 mb-3">Parecer Técnico</h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                      {technicalOpinion}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Footer */}
               <div

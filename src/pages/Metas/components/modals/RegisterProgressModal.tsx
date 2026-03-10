@@ -63,7 +63,6 @@ export function RegisterProgressModal({
       valor_registrado: finalValue,
       observacoes_subjetivas: observacoes || undefined,
       data_registro: new Date().toISOString(),
-      profissional_id: '', // será sobrescrito pelo hook/service
     })
 
     if (result) {

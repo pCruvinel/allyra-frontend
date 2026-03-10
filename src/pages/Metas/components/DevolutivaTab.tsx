@@ -40,9 +40,16 @@ import { useTherapeuticPlans } from '@/hooks/useTherapeuticPlans'
 import { useGoalReport } from '@/hooks/useGoalProgress'
 import { ShareModal } from './modals/ShareModal'
 import { PdfPreview } from './PdfPreview'
+import {
+  buildDevolutivaNotes,
+  parseDevolutivaNotes,
+  readStoredDevolutivaNotes,
+  writeStoredDevolutivaNotes,
+} from '../utils/devolutivaNotes'
 import { cn } from '@/lib/utils'
 import type { TherapeuticPlan, GoalProgressByMeta } from '@/types/goals'
 import type { PatientListItem } from '@/types/patient'
+import { toast } from 'sonner'
 
 type ViewMode = 'grid' | 'list'
 
@@ -91,7 +98,9 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
 
   // Estado do parecer técnico
   const [technicalOpinion, setTechnicalOpinion] = useState('')
+  const [recommendations, setRecommendations] = useState('')
   const [isEditingOpinion, setIsEditingOpinion] = useState(false)
+  const [isSavingOpinion, setIsSavingOpinion] = useState(false)
 
   // Hooks de dados
   const { patients, isLoading: patientsLoading } = usePatients()
@@ -131,6 +140,9 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
     setSelectedPatientId(patientId)
     setSelectedPlan(null)
     setShowPdfPreview(false)
+    setTechnicalOpinion('')
+    setRecommendations('')
+    setIsEditingOpinion(false)
   }
 
   const handleBackToPatients = () => {
@@ -138,11 +150,42 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
     setSelectedPlan(null)
     setShowPdfPreview(false)
     setTechnicalOpinion('')
+    setRecommendations('')
+    setIsEditingOpinion(false)
   }
 
-  const handleSaveOpinion = () => {
-    // TODO: Salvar no banco
+  const handleResetOpinionDraft = (plan: TherapeuticPlan | null) => {
+    const rawNotes = plan?.id ? readStoredDevolutivaNotes(plan.id) ?? plan.observacoes : plan?.observacoes
+    const parsedNotes = parseDevolutivaNotes(rawNotes)
+    setTechnicalOpinion(parsedNotes.technicalOpinion)
+    setRecommendations(parsedNotes.recommendations)
     setIsEditingOpinion(false)
+  }
+
+  const handleSaveOpinion = async () => {
+    if (!selectedPlan?.id) {
+      toast.error('Selecione um plano para salvar a devolutiva.')
+      return
+    }
+
+    setIsSavingOpinion(true)
+
+    try {
+      writeStoredDevolutivaNotes(
+        selectedPlan.id,
+        buildDevolutivaNotes({
+          technicalOpinion,
+          recommendations,
+        })
+      )
+
+      setIsEditingOpinion(false)
+      toast.success('Devolutiva salva com sucesso!')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erro ao salvar devolutiva')
+    } finally {
+      setIsSavingOpinion(false)
+    }
   }
 
   const handleExportPdf = () => {
@@ -170,10 +213,28 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
   }
 
   // Auto-selecionar primeiro plano quando paciente é selecionado
-  useMemo(() => {
+  useEffect(() => {
     if (plans.length > 0 && !selectedPlan) {
       setSelectedPlan(plans[0])
     }
+  }, [plans, selectedPlan])
+
+  useEffect(() => {
+    if (!selectedPlan) {
+      setTechnicalOpinion('')
+      setRecommendations('')
+      setIsEditingOpinion(false)
+      return
+    }
+
+    const latestSelectedPlan = plans.find((plan) => plan.id === selectedPlan.id) || selectedPlan
+    const rawNotes =
+      readStoredDevolutivaNotes(latestSelectedPlan.id) ?? latestSelectedPlan.observacoes
+    const parsedNotes = parseDevolutivaNotes(rawNotes)
+
+    setTechnicalOpinion(parsedNotes.technicalOpinion)
+    setRecommendations(parsedNotes.recommendations)
+    setIsEditingOpinion(false)
   }, [plans, selectedPlan])
 
   // Loading state
@@ -628,20 +689,6 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
           className="min-h-[150px] resize-y"
         />
 
-        {isEditingOpinion && (
-          <div className="flex justify-end gap-3 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setTechnicalOpinion('')
-                setIsEditingOpinion(false)
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveOpinion}>Salvar Parecer</Button>
-          </div>
-        )}
       </div>
 
       {/* Recomendações */}
@@ -649,24 +696,33 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
         <h3 className="font-semibold text-primary mb-3">
           Recomendações para o Próximo Ciclo
         </h3>
-        <ul className="space-y-2">
-          <li className="flex items-start gap-2">
-            <span className="text-primary mt-1">•</span>
-            <span className="text-foreground">Manter frequência de sessões semanais</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-primary mt-1">•</span>
-            <span className="text-foreground">
-              Aumentar complexidade dos exercícios conforme evolução
-            </span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-primary mt-1">•</span>
-            <span className="text-foreground">
-              Reforçar orientações para exercícios domiciliares com a família
-            </span>
-          </li>
-        </ul>
+        <p className="text-sm text-muted-foreground mb-4">
+          Registre orientações objetivas para o próximo ciclo terapêutico.
+        </p>
+        <Textarea
+          value={recommendations}
+          onChange={(e) => {
+            setRecommendations(e.target.value)
+            setIsEditingOpinion(true)
+          }}
+          placeholder="Ex: manter frequência semanal, revisar exercícios domiciliares e aumentar a complexidade gradualmente."
+          className="min-h-[140px] resize-y bg-background"
+        />
+
+        {isEditingOpinion && (
+          <div className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => handleResetOpinionDraft(selectedPlan)}
+              disabled={isSavingOpinion}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveOpinion} disabled={isSavingOpinion}>
+              {isSavingOpinion ? 'Salvando...' : 'Salvar Devolutiva'}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Share Modal */}
@@ -836,9 +892,9 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
                     {report.estatisticas.totalMetas} metas estabelecidas (
                     {report.estatisticas.taxaSucesso.toFixed(0)}% de sucesso).
                   </p>
-                  <p className="text-sm text-gray-900 leading-relaxed">
-                    Recomenda-se a continuidade do tratamento com foco nas metas em andamento,
-                    mantendo os exercícios domiciliares e o acompanhamento regular.
+                  <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                    {recommendations.trim() ||
+                      'Recomenda-se a continuidade do tratamento com foco nas metas em andamento, mantendo os exercícios domiciliares e o acompanhamento regular.'}
                   </p>
                 </div>
               </div>

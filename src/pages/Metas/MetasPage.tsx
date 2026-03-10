@@ -29,7 +29,7 @@ import { ReportModal } from './components/modals/ReportModal'
 import { GoalsExecutionWidget } from './components/GoalsExecutionWidget'
 import { DevolutivaTab } from './components/DevolutivaTab'
 import { MetasNavbar } from './components/MetasNavbar'
-import { PatientManagement, AttendanceRegistry, StandaloneOnboarding } from './components/standalone'
+import { AttendanceRegistry, StandaloneOnboarding } from './components/standalone'
 import { MetasModeProvider, useMetasMode } from './contexts/MetasModeContext'
 import type { TherapeuticPlan, TherapeuticGoal, PlanStatus } from '@/types/goals'
 import { useAuth } from '@/contexts/AuthContext'
@@ -44,7 +44,7 @@ interface PlanFormData {
 }
 
 type ViewMode = 'grid' | 'list'
-type TabView = 'pacientes' | 'registro' | 'planos' | 'atendimento' | 'devolutiva'
+type TabView = 'registro' | 'planos' | 'atendimento' | 'devolutiva'
 
 // Componente interno que usa o contexto de modo
 function MetasPageContent() {
@@ -466,7 +466,7 @@ function MetasPageContent() {
           </h1>
           <p className="text-sm text-muted-foreground">
             {isStandaloneMode
-              ? 'Modo avulso: Gerencie pacientes e atendimentos manualmente'
+              ? 'Modo avulso: Registre atendimentos manualmente'
               : 'Modo integrado: Usando dados do sistema principal'}
           </p>
         </div>
@@ -484,20 +484,12 @@ function MetasPageContent() {
         <TabsList className="w-full justify-start bg-muted/30 p-1 rounded-xl">
           {/* Abas do modo stand-alone (apenas visíveis nesse modo) */}
           {isStandaloneMode && (
-            <>
-              <TabsTrigger value="pacientes" className="rounded-lg data-[state=active]:bg-card gap-2">
-                Pacientes
-                <Badge variant="secondary" className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
-                  NOVO
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="registro" className="rounded-lg data-[state=active]:bg-card gap-2">
-                Registro
-                <Badge variant="secondary" className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
-                  NOVO
-                </Badge>
-              </TabsTrigger>
-            </>
+            <TabsTrigger value="registro" className="rounded-lg data-[state=active]:bg-card gap-2">
+              Registro de Atendimento
+              <Badge variant="secondary" className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
+                NOVO
+              </Badge>
+            </TabsTrigger>
           )}
 
           {/* Abas sempre visíveis */}
@@ -514,14 +506,9 @@ function MetasPageContent() {
 
         {/* Conteúdo das Tabs */}
         {isStandaloneMode && (
-          <>
-            <TabsContent value="pacientes" className="mt-6">
-              <PatientManagement searchQuery={searchQuery} />
-            </TabsContent>
-            <TabsContent value="registro" className="mt-6">
-              <AttendanceRegistry searchQuery={searchQuery} />
-            </TabsContent>
-          </>
+          <TabsContent value="registro" className="mt-6">
+            <AttendanceRegistry searchQuery={searchQuery} />
+          </TabsContent>
         )}
 
         <TabsContent value="planos" className="mt-6">
@@ -538,7 +525,7 @@ function MetasPageContent() {
       </Tabs>
 
       {/* Onboarding do modo stand-alone */}
-      <StandaloneOnboarding onNavigate={(tab) => setActiveTab(tab)} />
+      <StandaloneOnboarding onNavigate={(tab) => setActiveTab(tab as TabView)} />
     </div>
   )
 }

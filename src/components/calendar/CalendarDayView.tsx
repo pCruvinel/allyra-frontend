@@ -175,8 +175,16 @@ export function CalendarDayView({
                 e.preventDefault()
                 e.dataTransfer.dropEffect = 'move'
               }}
+              onDragEnter={(e) => {
+                e.preventDefault()
+                e.currentTarget.classList.add('bg-primary/20', 'ring-2', 'ring-primary/40', 'ring-inset')
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove('bg-primary/20', 'ring-2', 'ring-primary/40', 'ring-inset')
+              }}
               onDrop={(e) => {
                 e.preventDefault()
+                e.currentTarget.classList.remove('bg-primary/20', 'ring-2', 'ring-primary/40', 'ring-inset')
                 const eventId = e.dataTransfer.getData('eventId')
                 if (eventId && onEventDrop) {
                   onEventDrop(eventId, slot.hour, slot.minutes)
@@ -194,7 +202,7 @@ export function CalendarDayView({
               )}
             >
               {/* Indicador de "clique para agendar" no hover */}
-              <div className="hidden group-hover:flex items-center justify-center h-full relative z-10">
+              <div className="hidden group-hover:flex items-center justify-center h-full relative z-10 pointer-events-none">
                 <span className="text-xs text-primary/60 font-medium">
                   + Agendar
                 </span>
@@ -227,6 +235,12 @@ export function CalendarDayView({
                 onDragStart={(e) => {
                   e.dataTransfer.setData('eventId', event.id)
                   e.dataTransfer.effectAllowed = 'move'
+                }}
+                onDragEnd={() => {
+                  // Clean up any residual highlight if drag is cancelled
+                  document.querySelectorAll('.ring-primary\\/40').forEach((el) => {
+                    el.classList.remove('bg-primary/20', 'ring-2', 'ring-primary/40', 'ring-inset')
+                  })
                 }}
                 onClick={(e) => {
                   e.stopPropagation()

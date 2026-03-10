@@ -13,7 +13,7 @@ import {
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { useMetasMode } from '../../contexts/MetasModeContext'
 
-type TabType = 'pacientes' | 'registro' | 'planos'
+type TabType = 'registro' | 'planos'
 
 interface StandaloneOnboardingProps {
   onNavigate?: (tab: TabType) => void
@@ -47,7 +47,7 @@ export function StandaloneOnboarding({ onNavigate }: StandaloneOnboardingProps) 
 
         {/* Steps Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 px-8">
-          {/* Step 1: Cadastrar Paciente */}
+          {/* Step 1: Selecionar Paciente */}
           <div className="bg-muted/30 rounded-xl p-6 border-2 border-transparent hover:border-primary transition-colors">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-primary/10 rounded-xl">
@@ -56,18 +56,18 @@ export function StandaloneOnboarding({ onNavigate }: StandaloneOnboardingProps) 
               <div className="flex items-center gap-2">
                 <span className="font-bold text-primary text-xl">1</span>
                 <span className="font-semibold text-foreground">
-                  Cadastrar Paciente
+                  Selecionar Paciente
                 </span>
               </div>
             </div>
             <p className="text-muted-foreground text-sm mb-4">
-              Cadastre os dados básicos do paciente: nome, data de nascimento e responsável
+              Selecione um paciente do sistema para vincular ao plano terapêutico
             </p>
             <Button
-              onClick={() => handleNavigate('pacientes')}
+              onClick={() => handleNavigate('planos')}
               className="w-full"
             >
-              Ir para Pacientes
+              Ir para Planos
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>

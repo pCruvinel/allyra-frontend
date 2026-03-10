@@ -1,9 +1,12 @@
 /**
  * AttendanceRegistry - Registro de atendimentos e faltas no modo stand-alone
  * Timeline agrupada por data
+ *
+ * REFATORADO: Usa usePatients global ao invés de useStandalonePatients.
+ * paciente_id agora referencia a tabela global `pacientes`.
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Calendar, Plus, UserCheck, UserX, Clock, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -26,7 +29,7 @@ import {
 } from '@/components/ui/select-shadcn'
 import { Input } from '@/components/ui/input'
 import { EmptyState } from '@/components/ui/empty-state'
-import { useStandalonePatients } from '../../hooks/useStandalonePatients'
+import { usePatients } from '@/hooks/usePatients'
 import { useStandaloneAttendance } from '../../hooks/useStandaloneAttendance'
 import { toast } from 'sonner'
 
@@ -35,14 +38,28 @@ interface AttendanceRegistryProps {
 }
 
 export function AttendanceRegistry({ searchQuery = '' }: AttendanceRegistryProps) {
-  const { activePatients, getPatientById, isLoading: patientsLoading } = useStandalonePatients()
+  // Global patients hook (SSOT)
+  const { patients, isLoading: patientsLoading } = usePatients()
+
+  // Active patients from the global list
+  const activePatients = useMemo(
+    () => patients.filter(p => p.status === 'active'),
+    [patients]
+  )
+
+  // Helper to find patient by ID from global list
+  const getPatientById = useCallback(
+    (id: string) => patients.find(p => p.id === id),
+    [patients]
+  )
+
   const {
     recordsByDate,
     sortedDates,
     isLoading,
     registerAttendance,
   } = useStandaloneAttendance({
-    getPatientName: (id) => getPatientById(id)?.nome,
+    getPatientName: (id) => getPatientById(id)?.name,
   })
 
   // Filtrar registros pela busca
@@ -114,7 +131,7 @@ export function AttendanceRegistry({ searchQuery = '' }: AttendanceRegistryProps
     const patient = getPatientById(selectedPatient)
     registerAttendance({
       pacienteId: selectedPatient,
-      pacienteNome: patient?.nome,
+      pacienteNome: patient?.name,
       data: selectedDate,
       horario: selectedTime,
       tipo: 'presente',
@@ -134,7 +151,7 @@ export function AttendanceRegistry({ searchQuery = '' }: AttendanceRegistryProps
     const patient = getPatientById(selectedPatient)
     registerAttendance({
       pacienteId: selectedPatient,
-      pacienteNome: patient?.nome,
+      pacienteNome: patient?.name,
       data: selectedDate,
       horario: selectedTime,
       tipo: 'ausente',
@@ -303,7 +320,7 @@ export function AttendanceRegistry({ searchQuery = '' }: AttendanceRegistryProps
                   ) : (
                     activePatients.map(patient => (
                       <SelectItem key={patient.id} value={patient.id}>
-                        {patient.nome}
+                        {patient.name}
                       </SelectItem>
                     ))
                   )}
@@ -311,7 +328,7 @@ export function AttendanceRegistry({ searchQuery = '' }: AttendanceRegistryProps
               </Select>
               {!patientsLoading && activePatients.length === 0 && (
                 <p className="text-sm text-amber-600">
-                  Nenhum paciente cadastrado. Cadastre pacientes primeiro na aba "Pacientes".
+                  Nenhum paciente cadastrado. Cadastre pacientes na página de Pacientes.
                 </p>
               )}
             </div>
@@ -385,7 +402,7 @@ export function AttendanceRegistry({ searchQuery = '' }: AttendanceRegistryProps
                   ) : (
                     activePatients.map(patient => (
                       <SelectItem key={patient.id} value={patient.id}>
-                        {patient.nome}
+                        {patient.name}
                       </SelectItem>
                     ))
                   )}

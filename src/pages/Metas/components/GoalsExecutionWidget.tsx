@@ -21,11 +21,14 @@ import { Input } from '@/components/ui/input'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
+import { ConfirmationModal } from '@/components/modals/ConfirmationModal'
+import { useAuth } from '@/contexts/AuthContext'
 import { usePatients } from '@/hooks/usePatients'
 import { useGoals } from '@/hooks/useGoals'
 import { useTherapeuticPlans } from '@/hooks/useTherapeuticPlans'
+import { goalsService } from '@/services/goals.service'
 import { toast } from 'sonner'
-import type { TherapeuticGoal } from '@/types/goals'
+import type { TherapeuticGoal, ProgressStatus } from '@/types/goals'
 
 type ViewMode = 'grid' | 'list'
 type GoalStatus = 'pending' | 'achieved' | 'partial' | 'not-achieved'
@@ -35,17 +38,25 @@ interface GoalValue {
   value: string
 }
 
+interface SavedGoalSnapshot {
+  value: string
+  observacoes: string
+}
+
 interface GoalsExecutionWidgetProps {
   searchQuery?: string
 }
 
 export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetProps) {
+  const { currentClinica, user } = useAuth()
   const { patients, isLoading: patientsLoading } = usePatients()
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [goalValues, setGoalValues] = useState<GoalValue[]>([])
   const [observacoes, setObservacoes] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [showDiscardModal, setShowDiscardModal] = useState(false)
+  const [savedGoalSnapshots, setSavedGoalSnapshots] = useState<Record<string, SavedGoalSnapshot>>({})
 
   const attendanceDate = new Date().toLocaleDateString('pt-BR')
 
@@ -121,31 +132,183 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
   const filledGoals = goals.filter(g => getGoalValue(g.id)).length
   const totalGoals = goals.length
   const completionPercentage = totalGoals > 0 ? Math.round((filledGoals / totalGoals) * 100) : 0
+  const normalizedObservacoes = observacoes.trim()
 
-  const handleSaveDraft = async () => {
-    setIsSaving(true)
-    // TODO: Implementar salvamento de rascunho
-    await new Promise(resolve => setTimeout(resolve, 500))
-    toast.success('Rascunho salvo!')
-    setIsSaving(false)
-  }
+  const filledGoalEntries = useMemo(
+    () =>
+      goalValues
+        .map((goalValue) => ({
+          goalId: goalValue.goalId,
+          value: goalValue.value.trim(),
+        }))
+        .filter((goalValue) => goalValue.value !== ''),
+    [goalValues]
+  )
 
-  const handleFinish = async () => {
-    if (filledGoals < totalGoals) {
-      toast.error('Preencha todas as metas antes de finalizar')
-      return
-    }
+  const hasUnsavedFilledEntries = filledGoalEntries.some(({ goalId, value }) => {
+    const savedSnapshot = savedGoalSnapshots[goalId]
+    return !savedSnapshot || savedSnapshot.value !== value || savedSnapshot.observacoes !== normalizedObservacoes
+  })
 
-    setIsSaving(true)
-    // TODO: Implementar salvamento final via API (registro_progresso)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    toast.success('Atendimento finalizado com sucesso!')
-    setIsSaving(false)
+  const hasDivergedFromSavedEntries = Object.entries(savedGoalSnapshots).some(([goalId, savedSnapshot]) => {
+    const currentValue = getGoalValue(goalId).trim()
+    return currentValue !== savedSnapshot.value || savedSnapshot.observacoes !== normalizedObservacoes
+  })
 
-    // Reset
+  const isDirty =
+    hasUnsavedFilledEntries ||
+    hasDivergedFromSavedEntries ||
+    (normalizedObservacoes !== '' && filledGoalEntries.length === 0)
+
+  const resetAttendance = () => {
     setSelectedPatientId(null)
     setGoalValues([])
     setObservacoes('')
+    setSavedGoalSnapshots({})
+  }
+
+  const mapGoalStatusToProgressStatus = (status: GoalStatus): ProgressStatus => {
+    switch (status) {
+      case 'achieved':
+        return 'atingido'
+      case 'partial':
+        return 'parcial'
+      case 'not-achieved':
+        return 'nao_atingido'
+      default:
+        return 'registrado'
+    }
+  }
+
+  const persistProgressEntries = async (mode: 'draft' | 'finish') => {
+    if (!currentClinica?.id) {
+      toast.error('Clínica não selecionada')
+      return false
+    }
+
+    if (!user?.id) {
+      toast.error('Usuário não autenticado')
+      return false
+    }
+
+    const entriesToSave = goals
+      .map((goal) => {
+        const value = getGoalValue(goal.id).trim()
+        if (!value) return null
+
+        return {
+          goal,
+          value,
+          status: mapGoalStatusToProgressStatus(getCompletionStatus(goal)),
+        }
+      })
+      .filter((entry): entry is { goal: TherapeuticGoal; value: string; status: ProgressStatus } => entry !== null)
+
+    if (entriesToSave.length === 0) {
+      toast.info('Preencha ao menos uma meta para salvar.')
+      return false
+    }
+
+    if (mode === 'finish' && entriesToSave.length < goals.length) {
+      toast.error('Preencha todas as metas antes de finalizar')
+      return false
+    }
+
+    const pendingEntries = entriesToSave.filter(({ goal, value }) => {
+      const savedSnapshot = savedGoalSnapshots[goal.id]
+      return !savedSnapshot || savedSnapshot.value !== value || savedSnapshot.observacoes !== normalizedObservacoes
+    })
+
+    if (pendingEntries.length === 0) {
+      if (mode === 'draft') {
+        toast.info('Nenhuma alteração pendente para salvar.')
+        return true
+      }
+
+      toast.success('Atendimento finalizado com sucesso!')
+      resetAttendance()
+      return true
+    }
+
+    setIsSaving(true)
+
+    try {
+      const submissionResults = await Promise.allSettled(
+        pendingEntries.map(async ({ goal, value, status }) => {
+          const result = await goalsService.registerProgress(goal.id, {
+            clinica_id: currentClinica.id,
+            profissional_id: user.id,
+            data_registro: new Date().toISOString(),
+            valor_registrado: value,
+            status_classificacao: status,
+            observacoes_subjetivas: normalizedObservacoes || undefined,
+          })
+
+          if (result.error) {
+            throw new Error(result.error.message)
+          }
+
+          return { goalId: goal.id, value }
+        })
+      )
+
+      const successfulEntries: Array<{ goalId: string; value: string }> = []
+      const failedMessages: string[] = []
+
+      submissionResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          successfulEntries.push(result.value)
+          return
+        }
+
+        failedMessages.push(result.reason instanceof Error ? result.reason.message : 'Erro ao registrar progresso')
+      })
+
+      if (successfulEntries.length > 0) {
+        setSavedGoalSnapshots((previousSnapshots) => {
+          const nextSnapshots = { ...previousSnapshots }
+
+          successfulEntries.forEach(({ goalId, value }) => {
+            nextSnapshots[goalId] = {
+              value,
+              observacoes: normalizedObservacoes,
+            }
+          })
+
+          return nextSnapshots
+        })
+      }
+
+      if (failedMessages.length > 0) {
+        if (successfulEntries.length === 0) {
+          toast.error(failedMessages[0] || 'Erro ao salvar atendimento')
+        } else {
+          toast.error(
+            `Salvamento parcial: ${successfulEntries.length} de ${pendingEntries.length} metas foram registradas.`
+          )
+        }
+
+        return false
+      }
+
+      toast.success(mode === 'draft' ? 'Rascunho salvo!' : 'Atendimento finalizado com sucesso!')
+
+      if (mode === 'finish') {
+        resetAttendance()
+      }
+
+      return true
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSaveDraft = async () => {
+    await persistProgressEntries('draft')
+  }
+
+  const handleFinish = async () => {
+    await persistProgressEntries('finish')
   }
 
   // Loading state
@@ -298,9 +461,12 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
       {/* Back Button */}
       <button
         onClick={() => {
-          setSelectedPatientId(null)
-          setGoalValues([])
-          setObservacoes('')
+          if (isDirty) {
+            setShowDiscardModal(true)
+            return
+          }
+
+          resetAttendance()
         }}
         className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
       >
@@ -493,6 +659,19 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           rows={4}
         />
       </div>
+
+      <ConfirmationModal
+        isOpen={showDiscardModal}
+        onClose={() => setShowDiscardModal(false)}
+        onConfirm={resetAttendance}
+        title="Descartar alterações?"
+        heading="Você tem dados não salvos"
+        description="Ao voltar para a lista de pacientes, as alterações deste atendimento serão descartadas."
+        confirmLabel="Descartar"
+        cancelLabel="Continuar editando"
+        variant="danger"
+        headerColor="danger"
+      />
     </div>
   )
 }

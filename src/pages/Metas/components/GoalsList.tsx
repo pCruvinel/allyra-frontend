@@ -3,10 +3,12 @@
  * Padrões UI: cards com borda sutil, progress bars, action buttons
  */
 
+import { useState } from 'react'
 import { Plus, Edit2, Trash2, Target, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
+import { ConfirmationModal } from '@/components/modals/ConfirmationModal'
 import { StatusIndicator } from '@/components/ui/status-indicator'
 import { ProgressCard } from '@/components/ui/progress-card'
 import { cn } from '@/lib/utils'
@@ -45,6 +47,8 @@ export function GoalsList({
   onDeleteGoal,
   onRegisterProgress,
 }: GoalsListProps) {
+  const [goalToDelete, setGoalToDelete] = useState<TherapeuticGoal | null>(null)
+
   if (isLoading) {
     return (
       <div className="rounded-xl border border-border/60 bg-card">
@@ -70,6 +74,15 @@ export function GoalsList({
     if (!target || isNaN(target)) return { current: 0, target: 0 }
     const current = goal.valor_atual || 0
     return { current, target }
+  }
+
+  const handleConfirmDeleteGoal = () => {
+    if (!goalToDelete) {
+      return
+    }
+
+    onDeleteGoal(goalToDelete.id)
+    setGoalToDelete(null)
   }
 
   return (
@@ -217,7 +230,7 @@ export function GoalsList({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => onDeleteGoal(goal.id)}
+                          onClick={() => setGoalToDelete(goal)}
                           title="Excluir meta"
                         >
                           <Trash2 size={14} className="text-destructive" />
@@ -231,6 +244,23 @@ export function GoalsList({
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={!!goalToDelete}
+        onClose={() => setGoalToDelete(null)}
+        onConfirm={handleConfirmDeleteGoal}
+        title="Excluir meta terapêutica"
+        heading="Confirme a exclusão"
+        description={
+          goalToDelete
+            ? `A meta "${goalToDelete.titulo || goalToDelete.descricao}" será removida permanentemente.`
+            : ''
+        }
+        confirmLabel="Excluir meta"
+        cancelLabel="Cancelar"
+        variant="danger"
+        headerColor="danger"
+      />
     </div>
   )
 }
