@@ -109,6 +109,9 @@ export interface Appointment {
   id: string
   data_hora_inicio: string
   data_hora_fim: string
+  data_chegada?: string | null
+  data_inicio_atendimento?: string | null
+  data_fim_atendimento?: string | null
   status: string
   observacoes?: string
   paciente?: {
@@ -205,13 +208,15 @@ async function fetchAPI<T>(
 
   try {
     // Para Edge Functions, usar Authorization Bearer com anon_key se não houver token específico
-    const authHeader = (options.headers as Record<string, string>)?.['Authorization']
+    const providedHeaders = (options.headers as Record<string, string> | undefined) || {}
+    const authHeader = providedHeaders.Authorization
+    const hasBody = options.body !== undefined && options.body !== null
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': authHeader || `Bearer ${SUPABASE_ANON_KEY}`,
-        ...options.headers,
+        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+        ...providedHeaders,
       },
     })
 
@@ -535,6 +540,36 @@ export const apiService = {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
+    })
+  },
+
+  /**
+   * Registra check-in formal do agendamento na recepção
+   */
+  async checkInAppointment(id: string): Promise<ApiResponse<Appointment>> {
+    return await fetchAPI<ApiResponse<Appointment>>(`/api/appointments/${id}/checkin`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+  },
+
+  /**
+   * Registra o início formal do atendimento
+   */
+  async startAttendance(id: string): Promise<ApiResponse<Appointment>> {
+    return await fetchAPI<ApiResponse<Appointment>>(`/api/appointments/${id}/start-attendance`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+  },
+
+  /**
+   * Registra a conclusão formal do atendimento
+   */
+  async completeAttendance(id: string): Promise<ApiResponse<Appointment>> {
+    return await fetchAPI<ApiResponse<Appointment>>(`/api/appointments/${id}/complete-attendance`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
     })
   },
 

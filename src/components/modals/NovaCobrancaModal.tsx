@@ -1,29 +1,23 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { Controller } from 'react-hook-form'
 import { Modal, ModalBody, ModalFooter } from '@/components/ui/modal'
 import { AppDrawer, AppDrawerBody, AppDrawerFooter } from '@/components/ui/app-drawer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { FormField } from '@/components/ui/form-field'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/useMediaQuery'
+import { useZodForm } from '@/hooks/useZodForm'
+import { createCobrancaSchema, type CreateCobrancaInput } from '@/schemas/cobranca.schema'
 
 interface NovaCobrancaModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: CobrancaFormData) => void
+  onSubmit: (data: CreateCobrancaInput) => void
   patientName?: string
-}
-
-interface CobrancaFormData {
-  patientName: string
-  value: number
-  paymentMethod: string
-  installments: number
-  discount: number
-  delayDays: number
-  message: string
 }
 
 const paymentMethodOptions = [
@@ -56,7 +50,8 @@ export function NovaCobrancaModal({
   patientName = '',
 }: NovaCobrancaModalProps) {
   const isMobile = useIsMobile()
-  const [formData, setFormData] = useState<CobrancaFormData>({
+
+  const defaultValues: CreateCobrancaInput = {
     patientName: patientName,
     value: 0,
     paymentMethod: '',
@@ -64,32 +59,40 @@ export function NovaCobrancaModal({
     discount: 0,
     delayDays: 15,
     message: '',
-  })
-
-  const handleSubmit = () => {
-    onSubmit(formData)
-    onClose()
-    // Reset form
-    setFormData({
-      patientName: '',
-      value: 0,
-      paymentMethod: '',
-      installments: 1,
-      discount: 0,
-      delayDays: 15,
-      message: '',
-    })
   }
 
-  const isFormValid = formData.value > 0 && formData.paymentMethod !== ''
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    errors,
+    formState: { isValid },
+    setValue,
+    watch,
+  } = useZodForm(createCobrancaSchema, defaultValues)
+
+  const currentDelayDays = watch('delayDays')
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({ ...defaultValues, patientName })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, patientName])
+
+  const onFormSubmit = handleSubmit((data) => {
+    onSubmit(data)
+    onClose()
+    reset(defaultValues)
+  })
 
   const content = (
     <div className="space-y-6">
       {/* Paciente */}
       <FormField label="Paciente">
         <Input
-          value={formData.patientName}
-          onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
+          {...register('patientName')}
           placeholder="Nome do paciente"
           className="bg-muted/50"
         />
@@ -98,40 +101,69 @@ export function NovaCobrancaModal({
       {/* Valor e Forma de Pagamento */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Valor" required>
-          <Input
-            type="number"
-            value={formData.value || ''}
-            onChange={(e) => setFormData({ ...formData, value: Number(e.target.value) })}
-            placeholder="Digite apenas números"
+          <Controller
+            name="value"
+            control={control}
+            render={({ field }) => (
+              <CurrencyInput
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
           />
+          {errors.value && (
+            <p className="text-xs text-red-500 mt-1">{errors.value.message as string}</p>
+          )}
         </FormField>
         <FormField label="Forma de pagamento" required>
-          <Select
-            options={paymentMethodOptions}
-            value={formData.paymentMethod}
-            onChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-            placeholder="Selecione uma opção"
+          <Controller
+            name="paymentMethod"
+            control={control}
+            render={({ field }) => (
+              <Select
+                options={paymentMethodOptions}
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Selecione uma opção"
+              />
+            )}
           />
+          {errors.paymentMethod && (
+            <p className="text-xs text-red-500 mt-1">{errors.paymentMethod.message as string}</p>
+          )}
         </FormField>
       </div>
 
       {/* Parcelas e Desconto */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Quantidade de parcelas">
-          <Select
-            options={installmentOptions}
-            value={formData.installments.toString()}
-            onChange={(value) => setFormData({ ...formData, installments: Number(value) })}
-            placeholder="Selecione uma opção"
+          <Controller
+            name="installments"
+            control={control}
+            render={({ field }) => (
+              <Select
+                options={installmentOptions}
+                value={field.value.toString()}
+                onChange={(value) => field.onChange(Number(value))}
+                placeholder="Selecione uma opção"
+              />
+            )}
           />
         </FormField>
         <FormField label="Desconto">
-          <Input
-            type="number"
-            value={formData.discount || ''}
-            onChange={(e) => setFormData({ ...formData, discount: Number(e.target.value) })}
-            placeholder="Digite apenas números"
+          <Controller
+            name="discount"
+            control={control}
+            render={({ field }) => (
+              <CurrencyInput
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
           />
+          {errors.discount && (
+            <p className="text-xs text-red-500 mt-1">{errors.discount.message as string}</p>
+          )}
         </FormField>
       </div>
 
@@ -142,10 +174,10 @@ export function NovaCobrancaModal({
             <button
               key={tab.value}
               type="button"
-              onClick={() => setFormData({ ...formData, delayDays: tab.value })}
+              onClick={() => setValue('delayDays', tab.value, { shouldValidate: true })}
               className={cn(
                 'px-4 py-2 text-sm font-medium rounded-full border transition-colors',
-                formData.delayDays === tab.value
+                currentDelayDays === tab.value
                   ? 'bg-primary text-white border-primary'
                   : 'bg-background text-muted-foreground border-border hover:border-primary'
               )}
@@ -156,11 +188,10 @@ export function NovaCobrancaModal({
         </div>
       </FormField>
 
-      {/* Mensagem de Cobranca */}
+      {/* Mensagem de Cobrança */}
       <FormField label="Mensagem de cobrança">
         <Textarea
-          value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          {...register('message')}
           placeholder="Digite aqui a sua mensagem"
           rows={4}
         />
@@ -172,8 +203,8 @@ export function NovaCobrancaModal({
   const mobileActions = (
     <div className="flex flex-col gap-3 w-full">
       <Button
-        onClick={handleSubmit}
-        disabled={!isFormValid}
+        onClick={onFormSubmit}
+        disabled={!isValid}
         className="w-full rounded-full bg-primary hover:bg-primary/90"
       >
         Gerar
@@ -218,8 +249,8 @@ export function NovaCobrancaModal({
           Cancelar
         </Button>
         <Button
-          onClick={handleSubmit}
-          disabled={!isFormValid}
+          onClick={onFormSubmit}
+          disabled={!isValid}
           className="rounded-full px-8 bg-primary hover:bg-primary/90"
         >
           Gerar

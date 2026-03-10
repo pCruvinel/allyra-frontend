@@ -1,0 +1,10 @@
+src/components/modals/ListaEsperaModal.tsx(662,11): error TS2322: Type '(id: string) => Promise<boolean>' is not assignable to type '(id: string) => void | Promise<void>'.
+  Type 'Promise<boolean>' is not assignable to type 'void | Promise<void>'.
+    Type 'Promise<boolean>' is not assignable to type 'Promise<void>'.
+      Type 'boolean' is not assignable to type 'void'.
+src/pages/Financeiro/Cobranca/index.tsx(314,9): error TS2322: Type '(data: { patientName: string; value: number; paymentMethod: string; installments: number; discount: number; delayDays: number; message: string; }) => void' is not assignable to type '(data: { value: number; paymentMethod: string; installments: number; discount: number; delayDays: number; message?: string | undefined; patientName?: string | undefined; }) => void'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type '{ value: number; paymentMethod: string; installments: number; discount: number; delayDays: number; message?: string | undefined; patientName?: string | undefined; }' is not assignable to type '{ patientName: string; value: number; paymentMethod: string; installments: number; discount: number; delayDays: number; message: string; }'.
+      Types of property 'patientName' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.

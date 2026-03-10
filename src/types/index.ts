@@ -125,7 +125,7 @@ export interface CalendarEvent {
   time: string
   duration: number // minutos
   type: 'consulta' | 'retorno' | 'exame' | 'procedimento'
-  status: 'scheduled' | 'confirmed' | 'cancelled' | 'completed' | 'waiting'
+  status: 'scheduled' | 'confirmed' | 'cancelled' | 'completed' | 'waiting' | 'in_progress'
   professionalId: string
 }
 

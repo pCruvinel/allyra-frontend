@@ -6,6 +6,7 @@ import { ChatPanel } from '@/components/chat'
 import { ConfirmActionModal, NovoPacienteModal } from '@/components/modals'
 import { usePatients, useInsurances } from '@/hooks'
 import type { PatientListItem } from '@/types/patient'
+import type { CreatePatientInput } from '@/schemas/patient.schema'
 import type { Column, FilterConfig, FilterValues } from '@/components/ui/data-table'
 
 const tableColumns: Column<PatientListItem>[] = [
@@ -224,14 +225,7 @@ export function PacientesPage() {
     setIsNovoPacienteOpen(true)
   }
 
-  const handleNovoPacienteSubmit = async (data: {
-    name: string
-    email: string
-    cpf: string
-    phone: string
-    birthDate: string
-    insurance: string
-  }) => {
+  const handleNovoPacienteSubmit = async (data: CreatePatientInput) => {
     setIsProcessing(true)
     const result = await createPatient(data)
     setIsProcessing(false)

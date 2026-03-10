@@ -1,25 +1,26 @@
-import { useState, useMemo } from 'react'
-import { MessageCircle, Calendar, FileText, Clock, CalendarClock, Plus, Users } from 'lucide-react'
-import { CalendarHeader, CalendarGrid, CalendarWeekView, CalendarDayView, CalendarLegend } from '@/components/calendar'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Calendar, CalendarClock, Clock, FileText, MessageCircle, Plus, Users } from 'lucide-react'
+import { CalendarDayView, CalendarGrid, CalendarHeader, CalendarLegend, CalendarWeekView } from '@/components/calendar'
+import { ChatPanel } from '@/components/chat'
+import { AppointmentDetailsModal } from '@/components/modals/AppointmentDetailsModal'
+import { HorariosVagosModal } from '@/components/modals/HorariosVagosModal'
+import { ListaEsperaModal } from '@/components/modals/ListaEsperaModal'
 import { FloatingButton } from '@/components/ui'
 import { Button } from '@/components/ui/button'
 import { SkeletonCalendar } from '@/components/ui/skeleton'
-import { ChatPanel } from '@/components/chat'
-import { AppointmentDetailsModal } from '@/components/modals/AppointmentDetailsModal'
-import { ListaEsperaModal } from '@/components/modals/ListaEsperaModal'
-import { HorariosVagosModal } from '@/components/modals/HorariosVagosModal'
-import { OrcamentosTab } from './OrcamentosTab'
-import { RecepcaoTab } from './RecepcaoTab'
 import { useModal } from '@/contexts'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAppointments, useProfessionals } from '@/hooks'
-import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import type { CalendarView, CalendarEvent, Professional } from '@/types'
+import type { CalendarEvent, CalendarView, Professional } from '@/types'
+import { toast } from 'sonner'
+import { formatLocalISO } from '@/utils/appointment-helpers'
+import { OrcamentosTab } from './OrcamentosTab'
+import { RecepcaoTab } from './RecepcaoTab'
+import { canViewAllAgendas, getAgendaPreferenceKey, resolveInitialAgendaProfessional } from './agendaPreferences'
 
 type AgendaTab = 'calendario' | 'recepcao' | 'orcamentos'
 
-// Mapeia tipo de agendamento do banco para o tipo do calendário
 const typeMap: Record<string, CalendarEvent['type']> = {
   consulta: 'consulta',
   retorno: 'retorno',
@@ -27,12 +28,11 @@ const typeMap: Record<string, CalendarEvent['type']> = {
   procedimento: 'procedimento',
 }
 
-// Mapeia status do banco para o status do calendário
 const statusMap: Record<string, CalendarEvent['status']> = {
   agendado: 'scheduled',
   confirmado: 'confirmed',
   aguardando: 'waiting',
-  em_atendimento: 'confirmed',
+  em_atendimento: 'in_progress',
   concluido: 'completed',
   cancelado: 'cancelled',
   falta: 'cancelled',
@@ -41,7 +41,7 @@ const statusMap: Record<string, CalendarEvent['status']> = {
 
 export function AgendaPage() {
   const { openModal } = useModal()
-  const { user } = useAuth()
+  const { user, currentClinica } = useAuth()
   const [activeTab, setActiveTab] = useState<AgendaTab>('calendario')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedProfessional, setSelectedProfessional] = useState<string>('')
@@ -54,71 +54,125 @@ export function AgendaPage() {
   const [isWaitingListOpen, setIsWaitingListOpen] = useState(false)
   const [isEmptySlotsOpen, setIsEmptySlotsOpen] = useState(false)
 
-  // Buscar profissionais do Supabase
-  const { professionals: professionalsData, isLoading: professionalsLoading } = useProfessionals()
+  const {
+    professionals: professionalsData,
+    isLoading: professionalsLoading,
+    hasLoaded: professionalsLoaded,
+  } = useProfessionals()
+  const allowAllAgendas = canViewAllAgendas(user?.perfil_tipo)
+  const initializationKey = `${currentClinica?.id ?? 'sem-clinica'}:${user?.id ?? 'sem-usuario'}`
+  const initializedSelectionRef = useRef<string | null>(null)
 
-  // Converter profissionais para formato do calendário
-  const professionals: Professional[] = useMemo(() => {
-    return professionalsData.map(p => ({
-      id: p.id,
-      name: p.name,
-      specialty: p.specialties?.[0] || 'Geral',
-      avatar: p.avatar ?? undefined,
+  const preferenceKey = useMemo(() => {
+    if (!currentClinica?.id || !user?.id || !allowAllAgendas) return null
+    return getAgendaPreferenceKey(currentClinica.id, user.id)
+  }, [allowAllAgendas, currentClinica?.id, user?.id])
+
+  const professionals: Professional[] = useMemo(() => (
+    professionalsData.map((professional) => ({
+      id: professional.id,
+      name: professional.name,
+      specialty: professional.specialties?.[0] || 'Geral',
+      avatar: professional.avatar ?? undefined,
     }))
-  }, [professionalsData])
+  ), [professionalsData])
 
-  // Buscar agendamentos do mês atual do Supabase
+  const visibleProfessionals = useMemo(() => {
+    if (allowAllAgendas) return professionals
+
+    const ownProfessionalId = professionalsData.find((professional) => professional.userId === user?.id)?.id
+    return professionals.filter((professional) => professional.id === ownProfessionalId)
+  }, [allowAllAgendas, professionals, professionalsData, user?.id])
+
+  const defaultProfessionalScope = selectedProfessional || (!allowAllAgendas ? visibleProfessionals[0]?.id || '' : '')
+
+  useEffect(() => {
+    if (!professionalsLoaded || !user?.id) return
+    if (initializedSelectionRef.current === initializationKey) return
+
+    const storedProfessionalId = preferenceKey
+      ? localStorage.getItem(preferenceKey) || undefined
+      : undefined
+
+    const nextProfessionalId = resolveInitialAgendaProfessional({
+      perfilTipo: user.perfil_tipo,
+      userId: user.id,
+      professionals: professionalsData.map((professional) => ({
+        id: professional.id,
+        userId: professional.userId,
+      })),
+      storedProfessionalId,
+    })
+
+    setSelectedProfessional(nextProfessionalId)
+    initializedSelectionRef.current = initializationKey
+  }, [initializationKey, preferenceKey, professionalsData, professionalsLoaded, user?.id, user?.perfil_tipo])
+
+  useEffect(() => {
+    if (!preferenceKey || initializedSelectionRef.current !== initializationKey) return
+
+    if (selectedProfessional) {
+      localStorage.setItem(preferenceKey, selectedProfessional)
+    } else {
+      localStorage.removeItem(preferenceKey)
+    }
+  }, [initializationKey, preferenceKey, selectedProfessional])
+
   const {
     appointments,
     isLoading: appointmentsLoading,
     registerArrival,
-    cancelAppointment: cancelApt,
+    startAttendance,
+    cancelAppointment: cancelAppointment,
     changeStatus,
+    updateAppointment,
   } = useAppointments({
     mode: 'month',
     year: currentDate.getFullYear(),
     month: currentDate.getMonth(),
   })
 
-  // Converter agendamentos para formato CalendarEvent
-  const calendarEvents: CalendarEvent[] = useMemo(() => {
-    return appointments.map(apt => ({
-      id: apt.id,
-      patientName: apt.patientName,
-      patientId: apt.patientId,
-      // appending T00:00:00 forces JS to parse in local time instead of UTC
-      date: new Date(`${apt.date}T00:00:00`),
-      time: apt.time,
-      duration: apt.duration,
-      type: typeMap[apt.type] || 'consulta',
-      status: statusMap[apt.status] || 'scheduled',
-      professionalId: apt.professionalId,
+  const calendarEvents: CalendarEvent[] = useMemo(() => (
+    appointments.map((appointment) => ({
+      id: appointment.id,
+      patientName: appointment.patientName,
+      patientId: appointment.patientId,
+      date: new Date(`${appointment.date}T00:00:00`),
+      time: appointment.time,
+      duration: appointment.duration,
+      type: typeMap[appointment.type] || 'consulta',
+      status: statusMap[appointment.status] || 'scheduled',
+      professionalId: appointment.professionalId,
     }))
-  }, [appointments])
+  ), [appointments])
 
-  // Filtra eventos pelo profissional selecionado, tipo e status
   const filteredEvents = useMemo(() => {
+    if (!allowAllAgendas && !defaultProfessionalScope) {
+      return []
+    }
+
     let result = calendarEvents
 
-    // Filtro por profissional
-    if (selectedProfessional) {
-      result = result.filter(event => event.professionalId === selectedProfessional)
+    if (defaultProfessionalScope) {
+      result = result.filter((event) => event.professionalId === defaultProfessionalScope)
     }
 
-    // Filtro por tipo de atendimento
     if (selectedTypes.length > 0) {
-      result = result.filter(event => selectedTypes.includes(event.type))
+      result = result.filter((event) => selectedTypes.includes(event.type))
     }
 
-    // Filtro por status do agendamento
     if (selectedStatuses.length > 0) {
-      result = result.filter(event => selectedStatuses.includes(event.status))
+      result = result.filter((event) => selectedStatuses.includes(event.status))
     }
 
     return result
-  }, [selectedProfessional, selectedTypes, selectedStatuses, calendarEvents])
+  }, [allowAllAgendas, calendarEvents, defaultProfessionalScope, selectedStatuses, selectedTypes])
 
   const isLoading = professionalsLoading || appointmentsLoading
+
+  const openAppointmentModal = (professionalId?: string) => {
+    openModal('appointment', undefined, undefined, professionalId || defaultProfessionalScope || undefined)
+  }
 
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event)
@@ -130,15 +184,15 @@ export function AgendaPage() {
     setView('day')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleTimeSlotClick = (date: Date, _hour: number) => {
+    void _hour
     setCurrentDate(date)
-    openModal('appointment')
+    openAppointmentModal()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDayTimeSlotClick = (_hour: number) => {
-    openModal('appointment')
+    void _hour
+    openAppointmentModal()
   }
 
   const handleWaitingList = () => {
@@ -150,27 +204,30 @@ export function AgendaPage() {
   }
 
   const handleStartAttendance = async (event: CalendarEvent) => {
-    const success = await changeStatus(event.id, 'em_atendimento')
+    // State machine: aguardando → em_atendimento (via dedicated endpoint)
+    const success = await startAttendance(event.id)
     if (success) {
       toast.success(`Atendimento de ${event.patientName} iniciado`)
     }
   }
 
   const handleCancelWaiting = async (event: CalendarEvent) => {
-    const success = await changeStatus(event.id, 'confirmado')
+    // State machine: aguardando → cancelado | confirmado → cancelado | agendado → cancelado
+    // "Cancelar" from waiting list should set status to 'cancelado'
+    const success = await cancelAppointment(event.id)
     if (success) {
       toast.info(`${event.patientName} removido da lista de espera`)
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSelectEmptySlot = (date: Date, _hour: number) => {
+    void _hour
     setCurrentDate(date)
-    openModal('appointment')
+    openAppointmentModal()
   }
 
   const handleAddAppointment = () => {
-    openModal('appointment')
+    openAppointmentModal()
   }
 
   const handleOpenChat = () => {
@@ -185,106 +242,162 @@ export function AgendaPage() {
   }
 
   const handleReschedule = async (event: CalendarEvent) => {
+    // State machine valid transitions to 'reagendado':
+    //   agendado → reagendado ✓
+    //   confirmado → reagendado ✓
+    //   aguardando → reagendado ✗ (not allowed, must cancel first)
+    //   em_atendimento → reagendado ✗ (can only go to concluido)
+    // Map internal CalendarEvent status back to DB status for validation
+    const dbStatusMap: Record<string, string> = {
+      scheduled: 'agendado',
+      confirmed: 'confirmado',
+      waiting: 'aguardando',
+      completed: 'concluido',
+      cancelled: 'cancelado',
+    }
+    const currentDbStatus = dbStatusMap[event.status] || event.status
+
+    // If patient is currently in a state that doesn't allow 'reagendado',
+    // cancel first then open a new appointment
+    if (currentDbStatus === 'em_atendimento') {
+      toast.error(`Não é possível reagendar: ${event.patientName} está em atendimento. Conclua o atendimento primeiro.`)
+      return
+    }
+
+    if (currentDbStatus === 'aguardando') {
+      // From 'aguardando', can't go to 'reagendado' directly.
+      // Cancel the appointment and open a new one
+      const success = await cancelAppointment(event.id)
+      if (success) {
+        toast.info(`Agendamento de ${event.patientName} cancelado. Crie um novo agendamento.`)
+        openAppointmentModal(event.professionalId)
+      }
+      return
+    }
+
     const success = await changeStatus(event.id, 'reagendado')
     if (success) {
       toast.info(`Agendamento de ${event.patientName} marcado como reagendado. Crie um novo agendamento.`)
-      openModal('appointment')
+      openAppointmentModal(event.professionalId)
     }
   }
 
   const handleCancelAppointment = async (event: CalendarEvent) => {
-    const success = await cancelApt(event.id)
+    const success = await cancelAppointment(event.id)
     if (success) {
       toast.success(`Agendamento de ${event.patientName} cancelado`)
     }
   }
 
-  // Handler para converter orçamento em agendamento
+  const handleEventDrop = async (eventId: string, targetDate: Date, targetHour: number, targetMinutes: number = 0) => {
+    const event = calendarEvents.find((calendarEvent) => calendarEvent.id === eventId)
+    if (!event) return
+
+    const newStart = new Date(targetDate)
+    newStart.setHours(targetHour, targetMinutes, 0, 0)
+
+    const newEnd = new Date(newStart.getTime() + event.duration * 60000)
+    const data_hora_inicio = formatLocalISO(newStart)
+    const data_hora_fim = formatLocalISO(newEnd)
+
+    const updated = await updateAppointment(eventId, {
+      data_hora_inicio,
+      data_hora_fim,
+    })
+
+    if (updated) {
+      const timeStr = `${targetHour}:${targetMinutes.toString().padStart(2, '0')}`
+      toast.success(`Agendamento de ${event.patientName} remarcado para ${newStart.toLocaleDateString()} as ${timeStr}`)
+    }
+  }
+
+  const handleDayEventDrop = async (eventId: string, targetHour: number, targetMinutes: number = 0) => {
+    await handleEventDrop(eventId, currentDate, targetHour, targetMinutes)
+  }
+
   const handleConverterOrcamentoAgendamento = (
     _orcamentoId: string,
     _pacienteId: string,
-    profissionalId: string
+    professionalId: string,
   ) => {
-    setSelectedProfessional(profissionalId)
+    setSelectedProfessional(professionalId)
     setActiveTab('calendario')
-    openModal('appointment')
-    toast.info('Selecione data e horário para o agendamento')
+    openAppointmentModal(professionalId)
+    toast.info('Selecione data e horario para o agendamento')
   }
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Tabs + Ações */}
-      <div className="flex items-center justify-between bg-card border border-border rounded-xl p-1.5">
+      <div className="flex items-center justify-between rounded-xl border border-border bg-card p-1.5">
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('calendario')}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
               activeTab === 'calendario'
                 ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
-            <Calendar className="w-4 h-4" />
-            Calendário
+            <Calendar className="h-4 w-4" />
+            Calendario
           </button>
-          
+
           {['secretaria', 'administrador_total', 'admin_master'].includes(user?.perfil_tipo ?? '') && (
             <button
               onClick={() => setActiveTab('recepcao')}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
                 activeTab === 'recepcao'
                   ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
               )}
             >
-              <Users className="w-4 h-4" />
-              Recepção
+              <Users className="h-4 w-4" />
+              Recepcao
             </button>
           )}
 
           <button
             onClick={() => setActiveTab('orcamentos')}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
               activeTab === 'orcamentos'
                 ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
-            <FileText className="w-4 h-4" />
-            Orçamentos
+            <FileText className="h-4 w-4" />
+            Orcamentos
           </button>
         </div>
 
-        {/* Botões de ação à direita */}
         {activeTab === 'calendario' && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handleWaitingList}
-              className="rounded-full gap-1.5 hidden sm:flex"
+              className="hidden gap-1.5 rounded-full sm:flex"
             >
-              <Clock className="w-4 h-4" />
+              <Clock className="h-4 w-4" />
               Lista de espera
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleEmptySlots}
-              className="rounded-full gap-1.5 hidden sm:flex"
+              className="hidden gap-1.5 rounded-full sm:flex"
             >
-              <CalendarClock className="w-4 h-4" />
-              Horário vago
+              <CalendarClock className="h-4 w-4" />
+              Horario vago
             </Button>
             <Button
               size="sm"
               onClick={handleAddAppointment}
-              className="rounded-full gap-1.5"
+              className="gap-1.5 rounded-full"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Adicionar agendamento</span>
               <span className="sm:hidden">Novo</span>
             </Button>
@@ -292,13 +405,13 @@ export function AgendaPage() {
         )}
       </div>
 
-      {/* Tab Content */}
       {activeTab === 'calendario' ? (
         <>
           <CalendarHeader
             currentDate={currentDate}
             selectedProfessional={selectedProfessional}
-            professionals={professionals}
+            professionals={visibleProfessionals}
+            allowAllProfessionals={allowAllAgendas}
             view={view}
             selectedTypes={selectedTypes}
             selectedStatuses={selectedStatuses}
@@ -328,6 +441,7 @@ export function AgendaPage() {
                   events={filteredEvents}
                   onEventClick={handleEventClick}
                   onTimeSlotClick={handleTimeSlotClick}
+                  onEventDrop={handleEventDrop}
                 />
               )}
 
@@ -337,10 +451,10 @@ export function AgendaPage() {
                   events={filteredEvents}
                   onEventClick={handleEventClick}
                   onTimeSlotClick={handleDayTimeSlotClick}
+                  onEventDrop={handleDayEventDrop}
                 />
               )}
 
-              {/* Legenda de tipos e status */}
               <CalendarLegend className="mt-4 px-2" />
             </>
           )}
@@ -351,7 +465,6 @@ export function AgendaPage() {
         <OrcamentosTab onConverterAgendamento={handleConverterOrcamentoAgendamento} />
       )}
 
-      {/* Modal de Detalhes do Agendamento */}
       <AppointmentDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => {
@@ -364,7 +477,6 @@ export function AgendaPage() {
         onCancel={handleCancelAppointment}
       />
 
-      {/* Modal de Lista de Espera */}
       <ListaEsperaModal
         isOpen={isWaitingListOpen}
         onClose={() => setIsWaitingListOpen(false)}
@@ -375,23 +487,20 @@ export function AgendaPage() {
         onReschedule={handleReschedule}
       />
 
-      {/* Modal de Horários Vagos */}
       <HorariosVagosModal
         isOpen={isEmptySlotsOpen}
         onClose={() => setIsEmptySlotsOpen(false)}
         events={filteredEvents}
         currentDate={currentDate}
-        professionalName={professionals.find(p => p.id === selectedProfessional)?.name}
+        professionalName={professionals.find((professional) => professional.id === selectedProfessional)?.name}
         onSelectSlot={handleSelectEmptySlot}
       />
 
-      {/* Botão Flutuante de Chat */}
       <FloatingButton
-        icon={<MessageCircle className="w-8 h-8 text-primary-foreground" fill="currentColor" />}
+        icon={<MessageCircle className="h-8 w-8 text-primary-foreground" fill="currentColor" />}
         onClick={handleOpenChat}
       />
 
-      {/* Chat Panel */}
       <ChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   )

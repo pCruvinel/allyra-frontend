@@ -22,8 +22,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAppointments, type AppointmentFormatted } from '@/hooks/useAppointments'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
 import { FileText } from 'lucide-react'
+import { ConfirmArrivalModal } from '@/components/modals/ConfirmArrivalModal'
 
 // -------------------------------------------
 // Helpers
@@ -33,13 +33,23 @@ function formatTime(time: string): string {
   return time
 }
 
-function calculateWaitTime(arrivalTime: string): string {
-  const [hours, minutes] = arrivalTime.split(':').map(Number)
-  const appointmentDate = new Date()
-  appointmentDate.setHours(hours, minutes, 0, 0)
+function calculateWaitTime(arrivalDateTime?: string | null, fallbackTime?: string): string {
+  let referenceDate: Date | null = null
+
+  if (arrivalDateTime) {
+    referenceDate = new Date(arrivalDateTime)
+  } else if (fallbackTime) {
+    const [hours, minutes] = fallbackTime.split(':').map(Number)
+    referenceDate = new Date()
+    referenceDate.setHours(hours, minutes, 0, 0)
+  }
+
+  if (!referenceDate || Number.isNaN(referenceDate.getTime())) {
+    return '0min'
+  }
 
   const now = new Date()
-  const diffMs = now.getTime() - appointmentDate.getTime()
+  const diffMs = now.getTime() - referenceDate.getTime()
   const diffMinutes = Math.max(0, Math.floor(diffMs / 60000))
 
   if (diffMinutes < 60) {
@@ -160,12 +170,18 @@ export function RecepcaoTab() {
     appointments,
     isLoading,
     registerArrival,
-    changeStatus,
+    startAttendance,
+    completeAttendance,
     stats,
     refresh,
   } = useAppointments({ mode: 'today' })
 
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  
+  const [arrivalModalInfo, setArrivalModalInfo] = useState<{
+    isOpen: boolean;
+    appointment: AppointmentFormatted | null;
+  }>({ isOpen: false, appointment: null })
 
   // Agrupa agendamentos por status
   const grouped = useMemo(() => ({
@@ -187,32 +203,31 @@ export function RecepcaoTab() {
   }
 
   const handleRegisterArrival = (apt: AppointmentFormatted) => {
-    withLoading(apt.id, async () => {
-      const success = await registerArrival(apt.id)
-      if (success) {
-        toast.success(`Chegada de ${apt.patientName} registrada`)
-      }
-      return success
-    })
+    setArrivalModalInfo({ isOpen: true, appointment: apt })
+  }
+
+  const handleConfirmArrival = () => {
+    const apt = arrivalModalInfo.appointment
+    if (apt) {
+      withLoading(apt.id, async () => {
+        const success = await registerArrival(apt.id)
+        if (success) {
+          setArrivalModalInfo({ isOpen: false, appointment: null })
+        }
+        return success
+      })
+    }
   }
 
   const handleStartAttendance = (apt: AppointmentFormatted) => {
     withLoading(apt.id, async () => {
-      const success = await changeStatus(apt.id, 'em_atendimento')
-      if (success) {
-        toast.success(`Atendimento de ${apt.patientName} iniciado`)
-      }
-      return success
+      return await startAttendance(apt.id)
     })
   }
 
   const handleCompleteAttendance = (apt: AppointmentFormatted) => {
     withLoading(apt.id, async () => {
-      const success = await changeStatus(apt.id, 'concluido')
-      if (success) {
-        toast.success(`Atendimento de ${apt.patientName} concluído`)
-      }
-      return success
+      return await completeAttendance(apt.id)
     })
   }
 
@@ -307,7 +322,7 @@ export function RecepcaoTab() {
                   'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
                 )}>
                   <Clock className="w-3 h-3 mr-1" />
-                  {calculateWaitTime(apt.time)}
+                  {calculateWaitTime(apt.data_chegada, apt.time)}
                 </span>
               }
               actions={[
@@ -364,6 +379,18 @@ export function RecepcaoTab() {
           ))}
         </Column>
       </div>
+
+      {/* Moda de chekin */}
+      {arrivalModalInfo.appointment && (
+        <ConfirmArrivalModal
+          isOpen={arrivalModalInfo.isOpen}
+          onClose={() => setArrivalModalInfo({ isOpen: false, appointment: null })}
+          onConfirm={handleConfirmArrival}
+          patientName={arrivalModalInfo.appointment.patientName}
+          date={arrivalModalInfo.appointment.dateStr || ''}
+          time={arrivalModalInfo.appointment.time || ''}
+        />
+      )}
     </div>
   )
 }

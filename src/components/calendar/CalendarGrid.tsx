@@ -243,6 +243,7 @@ export function CalendarGrid({
                       event.status === 'confirmed' && "bg-green-500",
                       event.status === 'scheduled' && "bg-yellow-500",
                       event.status === 'waiting' && "bg-orange-500",
+                      event.status === 'in_progress' && "bg-purple-500",
                       event.status === 'cancelled' && "bg-red-500",
                       event.status === 'completed' && "bg-blue-500"
                     )}

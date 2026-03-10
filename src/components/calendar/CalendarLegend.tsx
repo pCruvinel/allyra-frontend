@@ -17,6 +17,7 @@ const statusItems: LegendItem[] = [
   { color: 'bg-muted ring-1 ring-border', label: 'Agendado', type: 'status' },
   { color: 'bg-green-500', label: 'Confirmado', type: 'status' },
   { color: 'bg-orange-500', label: 'Aguardando', type: 'status' },
+  { color: 'bg-purple-500', label: 'Em Atendimento', type: 'status' },
   { color: 'bg-red-500', label: 'Cancelado', type: 'status' },
   { color: 'bg-slate-400', label: 'Concluído', type: 'status' },
 ]

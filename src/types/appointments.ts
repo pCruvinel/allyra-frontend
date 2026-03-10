@@ -30,6 +30,9 @@ export interface AppointmentFormatted {
   id: string
   data_hora_inicio: string
   data_hora_fim: string
+  data_chegada?: string | null
+  data_inicio_atendimento?: string | null
+  data_fim_atendimento?: string | null
   status: AppointmentStatusDB
   observacoes?: string
   paciente?: {

@@ -7,6 +7,7 @@ import { ConfirmActionModal } from '@/components/modals'
 import { NovoClienteModal } from '@/components/modals/NovoClienteModal'
 import { useClients } from '@/hooks'
 import type { ClientFormatted } from '@/services/clients.service'
+import type { CreateClienteInput } from '@/schemas/client.schema'
 import type { Column, FilterConfig, FilterValues } from '@/components/ui/data-table'
 
 const tableColumns: Column<ClientFormatted>[] = [
@@ -150,21 +151,7 @@ export function ClientesPage() {
     setIsNovoClienteOpen(true)
   }
 
-  const handleNovoClienteSubmit = async (data: {
-    code: string
-    fantasyName: string
-    companyName: string
-    cnpj: string
-    stateRegistration?: string
-    email: string
-    phone: string
-    cep: string
-    address: string
-    neighborhood: string
-    city: string
-    state: string
-    modules: string[]
-  }) => {
+  const handleNovoClienteSubmit = async (data: CreateClienteInput) => {
     // Montar endereço completo
     const endereco = [data.address, data.neighborhood, data.city, data.state]
       .filter(Boolean)

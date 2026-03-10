@@ -4,6 +4,7 @@ import { Modal, ModalBody, ModalFooter } from '@/components/ui/modal'
 import { AppDrawer, AppDrawerBody, AppDrawerFooter } from '@/components/ui/app-drawer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { CpfInput } from '@/components/ui/cpf-input'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Select } from '@/components/ui/select'
 import { SingleSelectSearch } from '@/components/ui/single-select-search'
@@ -22,6 +23,7 @@ interface CreateAppointmentModalProps {
   onClose: () => void
   onSubmit: (data: AppointmentFormData) => void
   initialPatientId?: string
+  initialProfessionalId?: string
 }
 
 export interface AppointmentFormData {
@@ -77,6 +79,7 @@ export function CreateAppointmentModal({
   onClose,
   onSubmit,
   initialPatientId,
+  initialProfessionalId,
 }: CreateAppointmentModalProps) {
   const isMobile = useIsMobile()
   const { currentClinica } = useAuth()
@@ -143,6 +146,18 @@ export function CreateAppointmentModal({
     }
   }, [isOpen, initialPatientId, patientsOptions])
 
+  useEffect(() => {
+    if (!isOpen || !initialProfessionalId || professionalsOptions.length === 0) return
+
+    const professionalExists = professionalsOptions.some((professional) => professional.value === initialProfessionalId)
+    if (!professionalExists) return
+
+    setFormData((prev) => ({
+      ...prev,
+      professional: initialProfessionalId,
+    }))
+  }, [isOpen, initialProfessionalId, professionalsOptions])
+
   // Estado do formulário de cadastro rápido de paciente
   const [quickPatientForm, setQuickPatientForm] = useState({
     name: '',
@@ -205,7 +220,17 @@ export function CreateAppointmentModal({
   
         if (conflictRes.data?.hasConflict && conflictRes.data.conflicts.length > 0) {
           const c = conflictRes.data.conflicts[0]
-          toast.error(`Conflito de horário detectado para ${c.resource_name} (paciente: ${c.paciente_nome}) nesse horário.`)
+          let msg = `Conflito de horário detectado.`
+          if (c.type === 'sala') {
+            msg = `A sala ${c.resource_name} já está reservada para o paciente ${c.paciente_nome} nesse horário.`
+          } else if (c.type === 'profissional') {
+            msg = `O profissional ${c.resource_name} já possui agendamento com ${c.paciente_nome} nesse horário.`
+          } else if (c.type === 'paciente') {
+            msg = `O paciente ${c.resource_name} já possui outro agendamento nesse horário.`
+          } else {
+            msg = `Conflito detectado para ${c.resource_name} (paciente: ${c.paciente_nome}) nesse horário.`
+          }
+          toast.error(msg)
           return
         }
       }
@@ -658,10 +683,9 @@ export function CreateAppointmentModal({
               <label className="text-sm font-medium text-foreground">
                 CPF <span className="text-red-500">*</span>
               </label>
-              <Input
+              <CpfInput
                 value={quickPatientForm.cpf}
-                onChange={(e) => handleQuickPatientChange('cpf', e.target.value)}
-                placeholder="000.000.000-00"
+                onChange={(value) => handleQuickPatientChange('cpf', value)}
               />
             </div>
           </div>

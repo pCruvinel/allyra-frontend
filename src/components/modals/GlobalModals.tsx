@@ -17,14 +17,7 @@ import {
 } from '.'
 import type { PaymentFormData } from './ProcessPaymentModal'
 
-interface CreatePatientData {
-  name: string
-  email: string
-  cpf: string
-  phone?: string
-  birthDate?: string
-  insurance: string
-}
+import { type CreatePatientInput } from '@/schemas/patient.schema'
 
 interface CreateAppointmentData {
   service: string
@@ -241,7 +234,7 @@ export function GlobalModals() {
     }
   }
 
-  const handleCreatePatient = async (data: CreatePatientData) => {
+  const handleCreatePatient = async (data: CreatePatientInput) => {
     if (!currentClinica) {
       toast.error('Selecione uma clínica primeiro')
       return
@@ -270,6 +263,7 @@ export function GlobalModals() {
         onClose={closeModal}
         onSubmit={handleCreateAppointment}
         initialPatientId={modalState.initialPatientId}
+        initialProfessionalId={modalState.initialProfessionalId}
       />
 
       <ProcessPaymentModal

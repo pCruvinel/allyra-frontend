@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { apiService } from '@/services/api.service'
 import { useAuth } from '@/contexts/AuthContext'
 import { useData } from '@/contexts/DataContext'
+import { recalculateDerivedFields } from '@/utils/appointment-helpers'
 import type {
   AppointmentStatusDB,
   AppointmentFormatted,
@@ -48,6 +49,8 @@ interface UseAppointmentsReturn {
   changeStatus: (id: string, status: AppointmentStatusDB) => Promise<boolean>
   confirmAppointment: (id: string) => Promise<boolean>
   registerArrival: (id: string) => Promise<boolean>
+  startAttendance: (id: string) => Promise<boolean>
+  completeAttendance: (id: string) => Promise<boolean>
   cancelAppointment: (id: string) => Promise<boolean>
   registerNoShow: (id: string) => Promise<boolean>
 
@@ -196,6 +199,9 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
             id: a.id,
             data_hora_inicio: a.data_hora_inicio,
             data_hora_fim: a.data_hora_fim,
+            data_chegada: a.data_chegada ?? null,
+            data_inicio_atendimento: a.data_inicio_atendimento ?? null,
+            data_fim_atendimento: a.data_fim_atendimento ?? null,
             status: a.status || 'agendado',
             observacoes: a.observacoes,
             paciente: a.paciente ? {
@@ -277,7 +283,7 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
     }
   }, [currentClinica?.id, user?.id, fetchAppointments])
 
-  // Atualiza agendamento via API
+  // Atualiza agendamento via API com otimização otimista
   const updateAppointment = useCallback(async (
     id: string,
     data: UpdateAppointmentInput
@@ -287,12 +293,22 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
       return null
     }
 
+    // Otimista: Tenta atualizar local imediatamente
+    const previousState = [...localAppointments]
+    setLocalAppointments(prev => prev.map(a => 
+      a.id === id 
+        ? recalculateDerivedFields(a, { ...data, status: data.status || a.status })
+        : a
+    ))
+
     setIsLoading(true)
 
     try {
       const result = await apiService.updateAppointment(id, data)
 
       if (result.error || !result.data) {
+        // Reverte estado em caso de erro
+        setLocalAppointments(previousState)
         toast.error(result.error || 'Erro ao atualizar agendamento')
         return null
       }
@@ -301,13 +317,15 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
       await fetchAppointments()
       return result.data as AppointmentFormatted
     } catch (err: unknown) {
+      // Reverte estado em caso de erro
+      setLocalAppointments(previousState)
       const message = err instanceof Error ? err.message : 'Erro ao atualizar agendamento'
       toast.error(message)
       return null
     } finally {
       setIsLoading(false)
     }
-  }, [fetchAppointments, currentClinica?.id])
+  }, [fetchAppointments, currentClinica?.id, localAppointments])
 
   // Deleta agendamento via API
   const deleteAppointment = useCallback(async (id: string): Promise<boolean> => {
@@ -381,8 +399,87 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
 
   // Registra chegada
   const registerArrival = useCallback(async (id: string): Promise<boolean> => {
-    return changeStatus(id, 'aguardando')
-  }, [changeStatus])
+    // Optimistic update
+    const previousState = [...localAppointments]
+    setLocalAppointments(prev => prev.map(a => 
+      a.id === id ? { ...a, status: 'aguardando', data_chegada: new Date().toISOString() } : a
+    ))
+
+    try {
+      const result = await apiService.checkInAppointment(id)
+
+      if (result.error || !result.data) {
+        setLocalAppointments(previousState)
+        toast.error(result.error || 'Erro ao registrar chegada')
+        return false
+      }
+
+      toast.success('Chegada registrada!')
+      await fetchAppointments()
+      return true
+    } catch (err: unknown) {
+      setLocalAppointments(previousState)
+      const message = err instanceof Error ? err.message : 'Erro ao registrar chegada'
+      toast.error(message)
+      return false
+    }
+  }, [fetchAppointments, localAppointments])
+
+  // Registra início do atendimento
+  const startAttendance = useCallback(async (id: string): Promise<boolean> => {
+    // Optimistic update
+    const previousState = [...localAppointments]
+    setLocalAppointments(prev => prev.map(a => 
+      a.id === id ? { ...a, status: 'em_atendimento', data_inicio_atendimento: new Date().toISOString() } : a
+    ))
+
+    try {
+      const result = await apiService.startAttendance(id)
+
+      if (result.error || !result.data) {
+        setLocalAppointments(previousState)
+        toast.error(result.error || 'Erro ao iniciar atendimento')
+        return false
+      }
+
+      toast.success('Atendimento iniciado!')
+      await fetchAppointments()
+      return true
+    } catch (err: unknown) {
+      setLocalAppointments(previousState)
+      const message = err instanceof Error ? err.message : 'Erro ao iniciar atendimento'
+      toast.error(message)
+      return false
+    }
+  }, [fetchAppointments, localAppointments])
+
+  // Registra conclusão do atendimento
+  const completeAttendance = useCallback(async (id: string): Promise<boolean> => {
+    // Optimistic update
+    const previousState = [...localAppointments]
+    setLocalAppointments(prev => prev.map(a => 
+      a.id === id ? { ...a, status: 'concluido', data_fim_atendimento: new Date().toISOString() } : a
+    ))
+
+    try {
+      const result = await apiService.completeAttendance(id)
+
+      if (result.error || !result.data) {
+        setLocalAppointments(previousState)
+        toast.error(result.error || 'Erro ao concluir atendimento')
+        return false
+      }
+
+      toast.success('Atendimento concluído!')
+      await fetchAppointments()
+      return true
+    } catch (err: unknown) {
+      setLocalAppointments(previousState)
+      const message = err instanceof Error ? err.message : 'Erro ao concluir atendimento'
+      toast.error(message)
+      return false
+    }
+  }, [fetchAppointments, localAppointments])
 
   // Cancela agendamento
   const cancelAppointment = useCallback(async (id: string): Promise<boolean> => {
@@ -442,6 +539,8 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
     changeStatus,
     confirmAppointment,
     registerArrival,
+    startAttendance,
+    completeAttendance,
     cancelAppointment,
     registerNoShow,
     setSearch,

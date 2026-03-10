@@ -40,6 +40,7 @@ const statusLabels: Record<CalendarEvent['status'], string> = {
   cancelled: 'Cancelado',
   completed: 'Concluído',
   waiting: 'Aguardando',
+  in_progress: 'Em Atendimento',
 }
 
 const statusColors: Record<CalendarEvent['status'], string> = {
@@ -48,6 +49,7 @@ const statusColors: Record<CalendarEvent['status'], string> = {
   cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   completed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   waiting: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  in_progress: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
 }
 
 function formatDate(date: Date): string {

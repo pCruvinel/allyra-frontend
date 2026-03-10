@@ -10,6 +10,7 @@ import { usePaginationConfig } from '@/hooks'
 import { useAuth } from '@/contexts/AuthContext'
 import type { MedicalRecord } from '@/types/medical-record'
 import { ProntuarioDetalheModal } from './ProntuarioDetalheModal'
+import { PatientGoalsWidget } from './PatientGoalsWidget'
 
 interface ProntuarioAtualTabProps {
   records: MedicalRecord[]
@@ -18,7 +19,8 @@ interface ProntuarioAtualTabProps {
 
 export function ProntuarioAtualTab({ records, patientId }: ProntuarioAtualTabProps) {
   const { createProntuario, isLoading } = useMedicalData({ autoFetch: false })
-  const { user } = useAuth()
+  const { user, currentClinica } = useAuth()
+  const clinicaId = currentClinica?.id || ''
   const [currentPage, setCurrentPage] = useState(1)
   const [showNewForm, setShowNewForm] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null)
@@ -167,6 +169,11 @@ export function ProntuarioAtualTab({ records, patientId }: ProntuarioAtualTabPro
                 className="min-h-[100px]"
               />
             </div>
+
+            {/* Widget de Metas Terapêuticas */}
+            {clinicaId && (
+              <PatientGoalsWidget patientId={patientId} clinicaId={clinicaId} />
+            )}
 
             {/* Observações Privadas */}
             <div>

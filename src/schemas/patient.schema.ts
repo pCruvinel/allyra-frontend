@@ -3,38 +3,10 @@
  */
 
 import { z } from 'zod'
+import { isValidCPF } from '@/lib/validators'
 
-// Regex para validação
-const cpfRegex = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/
+// Regex para validação de formato
 const phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/
-
-// Função para validar CPF (algoritmo completo)
-function isValidCPF(cpf: string): boolean {
-  const cleaned = cpf.replace(/\D/g, '')
-
-  if (cleaned.length !== 11) return false
-  if (/^(\d)\1+$/.test(cleaned)) return false // Todos dígitos iguais
-
-  // Validação do primeiro dígito verificador
-  let sum = 0
-  for (let i = 0; i < 9; i++) {
-    sum += parseInt(cleaned[i]) * (10 - i)
-  }
-  let digit = (sum * 10) % 11
-  if (digit === 10) digit = 0
-  if (digit !== parseInt(cleaned[9])) return false
-
-  // Validação do segundo dígito verificador
-  sum = 0
-  for (let i = 0; i < 10; i++) {
-    sum += parseInt(cleaned[i]) * (11 - i)
-  }
-  digit = (sum * 10) % 11
-  if (digit === 10) digit = 0
-  if (digit !== parseInt(cleaned[10])) return false
-
-  return true
-}
 
 // Schema base para dados do paciente
 export const patientBaseSchema = z.object({
@@ -51,7 +23,8 @@ export const patientBaseSchema = z.object({
 
   cpf: z
     .string()
-    .regex(cpfRegex, 'CPF inválido (formato: 000.000.000-00)')
+    .min(11, 'CPF deve ter 11 dígitos')
+    .max(14, 'CPF inválido')
     .refine(isValidCPF, 'CPF inválido'),
 
   phone: z

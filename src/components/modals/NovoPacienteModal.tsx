@@ -1,26 +1,21 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { Controller } from 'react-hook-form'
 import { Modal, ModalBody, ModalFooter } from '@/components/ui/modal'
 import { AppDrawer, AppDrawerBody, AppDrawerFooter } from '@/components/ui/app-drawer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { CpfInput } from '@/components/ui/cpf-input'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Select } from '@/components/ui/select'
 import { useIsMobile } from '@/hooks/useMediaQuery'
+import { useZodForm } from '@/hooks/useZodForm'
+import { createPatientSchema, type CreatePatientInput } from '@/schemas/patient.schema'
 
 interface NovoPacienteModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: PatientFormData) => void
+  onSubmit: (data: CreatePatientInput) => void
   isLoading?: boolean
-}
-
-interface PatientFormData {
-  name: string
-  email: string
-  cpf: string
-  phone: string
-  birthDate: string
-  insurance: string
 }
 
 const insuranceOptions = [
@@ -32,6 +27,15 @@ const insuranceOptions = [
   { value: 'Porto Seguro', label: 'Porto Seguro' },
 ]
 
+const defaultValues: CreatePatientInput = {
+  name: '',
+  email: '',
+  cpf: '',
+  phone: '',
+  birthDate: '',
+  insurance: '',
+}
+
 export function NovoPacienteModal({
   isOpen,
   onClose,
@@ -39,47 +43,34 @@ export function NovoPacienteModal({
   isLoading = false,
 }: NovoPacienteModalProps) {
   const isMobile = useIsMobile()
-  const [formData, setFormData] = useState<PatientFormData>({
-    name: '',
-    email: '',
-    cpf: '',
-    phone: '',
-    birthDate: '',
-    insurance: '',
-  })
 
-  const handleSubmit = () => {
-    onSubmit(formData)
-    // Reset do form será feito quando o modal fechar
-  }
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    errors,
+    formState: { isValid },
+  } = useZodForm(createPatientSchema, defaultValues)
 
   // Limpa o form quando o modal é fechado
   const handleClose = () => {
     if (!isLoading) {
-      setFormData({
-        name: '',
-        email: '',
-        cpf: '',
-        phone: '',
-        birthDate: '',
-        insurance: '',
-      })
+      reset(defaultValues)
       onClose()
     }
   }
 
-  const handleChange = (field: keyof PatientFormData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }))
-  }
+  // Reset ao reabrir
+  useEffect(() => {
+    if (isOpen) {
+      reset(defaultValues)
+    }
+  }, [isOpen, reset])
 
-  const handleSelectChange = (field: keyof PatientFormData) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const isFormValid =
-    formData.name && formData.email && formData.cpf && formData.insurance
+  const onFormSubmit = handleSubmit((data) => {
+    onSubmit(data)
+  })
 
   const content = (
     <div className="space-y-4">
@@ -88,10 +79,12 @@ export function NovoPacienteModal({
           Nome completo <span className="text-red-500">*</span>
         </label>
         <Input
-          value={formData.name}
-          onChange={handleChange('name')}
+          {...register('name')}
           placeholder="Digite o nome completo"
         />
+        {errors.name && (
+          <p className="text-xs text-red-500 mt-1">{errors.name.message as string}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -101,20 +94,31 @@ export function NovoPacienteModal({
           </label>
           <Input
             type="email"
-            value={formData.email}
-            onChange={handleChange('email')}
+            {...register('email')}
             placeholder="email@exemplo.com"
           />
+          {errors.email && (
+            <p className="text-xs text-red-500 mt-1">{errors.email.message as string}</p>
+          )}
         </div>
 
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
             Telefone
           </label>
-          <PhoneInput
-            value={formData.phone}
-            onChange={(value) => setFormData((prev) => ({ ...prev, phone: value }))}
+          <Controller
+            name="phone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
           />
+          {errors.phone && (
+            <p className="text-xs text-red-500 mt-1">{errors.phone.message as string}</p>
+          )}
         </div>
       </div>
 
@@ -123,11 +127,19 @@ export function NovoPacienteModal({
           <label className="block text-sm font-medium text-foreground mb-1">
             CPF <span className="text-red-500">*</span>
           </label>
-          <Input
-            value={formData.cpf}
-            onChange={handleChange('cpf')}
-            placeholder="000.000.000-00"
+          <Controller
+            name="cpf"
+            control={control}
+            render={({ field }) => (
+              <CpfInput
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
           />
+          {errors.cpf && (
+            <p className="text-xs text-red-500 mt-1">{errors.cpf.message as string}</p>
+          )}
         </div>
 
         <div>
@@ -136,20 +148,33 @@ export function NovoPacienteModal({
           </label>
           <Input
             type="date"
-            value={formData.birthDate}
-            onChange={handleChange('birthDate')}
+            {...register('birthDate')}
           />
+          {errors.birthDate && (
+            <p className="text-xs text-red-500 mt-1">{errors.birthDate.message as string}</p>
+          )}
         </div>
       </div>
 
-      <Select
-        label="Convênio"
-        required
-        options={insuranceOptions}
-        value={formData.insurance}
-        onChange={handleSelectChange('insurance')}
-        placeholder="Selecione o convênio"
-      />
+      <div>
+        <Controller
+          name="insurance"
+          control={control}
+          render={({ field }) => (
+            <Select
+              label="Convênio"
+              required
+              options={insuranceOptions}
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="Selecione o convênio"
+            />
+          )}
+        />
+        {errors.insurance && (
+          <p className="text-xs text-red-500 mt-1">{errors.insurance.message as string}</p>
+        )}
+      </div>
     </div>
   )
 
@@ -157,8 +182,8 @@ export function NovoPacienteModal({
   const mobileActions = (
     <div className="flex flex-col gap-3 w-full">
       <Button
-        onClick={handleSubmit}
-        disabled={!isFormValid || isLoading}
+        onClick={onFormSubmit}
+        disabled={!isValid || isLoading}
         className="w-full rounded-full bg-primary hover:bg-primary/90"
       >
         {isLoading ? 'Cadastrando...' : 'Cadastrar'}
@@ -204,8 +229,8 @@ export function NovoPacienteModal({
           Cancelar
         </Button>
         <Button
-          onClick={handleSubmit}
-          disabled={!isFormValid || isLoading}
+          onClick={onFormSubmit}
+          disabled={!isValid || isLoading}
           className="rounded-full px-8 bg-primary hover:bg-primary/90"
         >
           {isLoading ? 'Cadastrando...' : 'Cadastrar'}

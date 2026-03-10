@@ -6,6 +6,7 @@ import { FinancialSummaryCard } from '@/components/ui/progress-bar'
 import { ChatPanel } from '@/components/chat'
 import { NovaCobrancaModal } from '@/components/modals/NovaCobrancaModal'
 import { useContasReceber } from '@/hooks'
+import type { CreateCobrancaInput } from '@/schemas/cobranca.schema'
 import type { Column, FilterConfig, FilterValues } from '@/components/ui/data-table'
 import { cn } from '@/lib/utils'
 
@@ -216,7 +217,7 @@ export function CobrancaPage() {
     setIsNovaCobrancaOpen(true)
   }
 
-  const handleCobrancaSubmit = (data: { patientName: string; value: number; paymentMethod: string; installments: number; discount: number; delayDays: number; message: string }) => {
+  const handleCobrancaSubmit = (data: CreateCobrancaInput) => {
     console.log('Nova cobrança criada:', data)
   }
 

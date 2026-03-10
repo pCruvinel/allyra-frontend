@@ -17,17 +17,17 @@ interface ListaEsperaModalProps {
   isOpen: boolean
   onClose: () => void
   events?: CalendarEvent[]
-  onStartAttendance?: (event: CalendarEvent) => void
-  onCancelWaiting?: (event: CalendarEvent) => void
-  onConfirmArrival?: (event: CalendarEvent) => void
-  onReschedule?: (event: CalendarEvent) => void
+  onStartAttendance?: (event: CalendarEvent) => void | Promise<void>
+  onCancelWaiting?: (event: CalendarEvent) => void | Promise<void>
+  onConfirmArrival?: (event: CalendarEvent) => void | Promise<void>
+  onReschedule?: (event: CalendarEvent) => void | Promise<void>
 }
 
 const MAX_PREVIEW = 5
 
-// Filtra apenas pacientes aguardando atendimento (status = confirmed)
+// Filtra apenas pacientes aguardando atendimento na recepção (status = waiting, que no banco é 'aguardando')
 function getWaitingPatients(events: CalendarEvent[] = []) {
-  return events.filter(e => e.status === 'confirmed')
+  return events.filter(e => e.status === 'waiting')
 }
 
 function formatTime(time: string): string {
@@ -79,8 +79,8 @@ function getPrioridadeLabel(prioridade: number): { label: string; className: str
 interface WaitlistContentProps {
   entries: WaitlistEntry[]
   loading: boolean
-  onRemove: (id: string) => void
-  onSchedule: (entry: WaitlistEntry) => void
+  onRemove: (id: string) => void | Promise<void> | Promise<boolean>
+  onSchedule: (entry: WaitlistEntry) => void | Promise<void>
 }
 
 function WaitlistContent({ entries, loading, onRemove, onSchedule }: WaitlistContentProps) {
@@ -195,10 +195,10 @@ function WaitlistContent({ entries, loading, onRemove, onSchedule }: WaitlistCon
 // ================================
 interface WaitingPatientsContentProps {
   waitingPatients: CalendarEvent[]
-  onStartAttendance?: (event: CalendarEvent) => void
-  onCancelWaiting?: (event: CalendarEvent) => void
-  onConfirmArrival?: (event: CalendarEvent) => void
-  onReschedule?: (event: CalendarEvent) => void
+  onStartAttendance?: (event: CalendarEvent) => void | Promise<void>
+  onCancelWaiting?: (event: CalendarEvent) => void | Promise<void>
+  onConfirmArrival?: (event: CalendarEvent) => void | Promise<void>
+  onReschedule?: (event: CalendarEvent) => void | Promise<void>
   onClose: () => void
 }
 
@@ -281,7 +281,7 @@ function WaitingPatientsContent({
               <div className="flex items-center gap-1 flex-shrink-0">
                 {onConfirmArrival && (
                   <button
-                    onClick={() => { onConfirmArrival(event); onClose() }}
+                    onClick={async () => { await onConfirmArrival(event); onClose() }}
                     className="p-1.5 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 transition-colors"
                     title="Confirmar chegada"
                   >
@@ -290,7 +290,7 @@ function WaitingPatientsContent({
                 )}
                 {onReschedule && (
                   <button
-                    onClick={() => { onReschedule(event); onClose() }}
+                    onClick={async () => { await onReschedule(event); onClose() }}
                     className="p-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 transition-colors"
                     title="Reagendar"
                   >
@@ -299,7 +299,7 @@ function WaitingPatientsContent({
                 )}
                 {onCancelWaiting && (
                   <button
-                    onClick={() => { onCancelWaiting(event); onClose() }}
+                    onClick={async () => { await onCancelWaiting(event); onClose() }}
                     className="p-1.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 transition-colors"
                     title="Cancelar"
                   >
@@ -364,7 +364,7 @@ function WaitingPatientsContent({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => { onConfirmArrival(event); onClose() }}
+                  onClick={async () => { await onConfirmArrival(event); onClose() }}
                   className="rounded-full text-xs gap-1"
                 >
                   <Check className="w-3.5 h-3.5" />
@@ -375,7 +375,7 @@ function WaitingPatientsContent({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => { onReschedule(event); onClose() }}
+                  onClick={async () => { await onReschedule(event); onClose() }}
                   className="rounded-full text-xs gap-1"
                 >
                   <CalendarDays className="w-3.5 h-3.5" />
@@ -385,7 +385,7 @@ function WaitingPatientsContent({
               {onStartAttendance && (
                 <Button
                   size="sm"
-                  onClick={() => { onStartAttendance(event); onClose() }}
+                  onClick={async () => { await onStartAttendance(event); onClose() }}
                   className="rounded-full text-xs gap-1"
                 >
                   Iniciar atendimento
@@ -395,7 +395,7 @@ function WaitingPatientsContent({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => { onCancelWaiting(event); onClose() }}
+                  onClick={async () => { await onCancelWaiting(event); onClose() }}
                   className="rounded-full text-xs gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <X className="w-3.5 h-3.5" />

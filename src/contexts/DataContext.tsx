@@ -18,6 +18,7 @@ import { apiService } from '@/services/api.service'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { logger } from '@/lib/logger'
+import { getLocalDateString, formatTimeString } from '@/utils/appointment-helpers'
 import type { PatientListItem } from '@/types/patient'
 import type { AppointmentFormatted, AppointmentStatusDB } from '@/hooks/useAppointments'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -87,16 +88,7 @@ function mapPatient(p: any): PatientListItem {
   }
 }
 
-/**
- * Extrai a data local no formato YYYY-MM-DD sem conversao de timezone
- * Evita o bug onde horarios noturnos mudam de dia ao usar toISOString()
- */
-function getLocalDateString(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+// getLocalDateString and formatTimeString are imported from @/utils/appointment-helpers
 
 /**
  * Mapeia dados da API para AppointmentFormatted
@@ -107,13 +99,16 @@ function mapAppointment(a: any): AppointmentFormatted {
   const endDate = new Date(a.data_hora_fim)
   // Usa funcao local para evitar bug de timezone com toISOString()
   const dateStr = getLocalDateString(startDate)
-  const timeStr = startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const timeStr = formatTimeString(startDate)
   const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000)
 
   return {
     id: a.id,
     data_hora_inicio: a.data_hora_inicio,
     data_hora_fim: a.data_hora_fim,
+    data_chegada: a.data_chegada ?? null,
+    data_inicio_atendimento: a.data_inicio_atendimento ?? null,
+    data_fim_atendimento: a.data_fim_atendimento ?? null,
     status: (a.status || 'agendado') as AppointmentStatusDB,
     observacoes: a.observacoes,
     paciente: a.paciente ? {

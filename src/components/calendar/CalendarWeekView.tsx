@@ -7,10 +7,15 @@ interface CalendarWeekViewProps {
   events: CalendarEvent[]
   onEventClick: (event: CalendarEvent) => void
   onTimeSlotClick: (date: Date, hour: number) => void
+  onEventDrop?: (eventId: string, targetDate: Date, targetHour: number, targetMinutes: number) => void
 }
 
 const WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6) // 06:00 - 22:00
+const HALF_HOUR_SLOTS = HOURS.flatMap((hour) => [
+  { hour, minutes: 0 },
+  { hour, minutes: 30 },
+])
 
 function getWeekDays(date: Date): Date[] {
   const days: Date[] = []
@@ -88,6 +93,7 @@ export function CalendarWeekView({
   events,
   onEventClick,
   onTimeSlotClick,
+  onEventDrop,
 }: CalendarWeekViewProps) {
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate])
 
@@ -149,24 +155,35 @@ export function CalendarWeekView({
                 isToday(date) && 'bg-primary/5'
               )}
             >
-              {/* Linhas de hora (clicáveis) */}
-              {HOURS.map((hour) => (
+              {/* Sub-slots de 30 minutos (clicáveis e droppáveis) */}
+              {HALF_HOUR_SLOTS.map((slot) => (
                 <div
-                  key={hour}
+                  key={`${slot.hour}-${slot.minutes}`}
                   role="button"
                   tabIndex={0}
-                  onClick={() => onTimeSlotClick(date, hour)}
+                  onClick={() => onTimeSlotClick(date, slot.hour)}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = 'move'
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const eventId = e.dataTransfer.getData('eventId')
+                    if (eventId && onEventDrop) {
+                      onEventDrop(eventId, date, slot.hour, slot.minutes)
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
-                      onTimeSlotClick(date, hour)
+                      onTimeSlotClick(date, slot.hour)
                     }
                   }}
-                  className="h-12 border-b border-border/50 hover:bg-primary/10 cursor-pointer transition-colors relative"
-                >
-                  {/* Linha tracejada de meia hora */}
-                  <div className="absolute left-0 right-0 top-1/2 border-t border-dashed border-border/20" />
-                </div>
+                  className={cn(
+                    'h-6 hover:bg-primary/10 cursor-pointer transition-colors relative',
+                    slot.minutes === 0 ? 'border-b border-border/20' : 'border-b border-border/50',
+                  )}
+                />
               ))}
 
               {/* Eventos do dia - Cards pastel */}
@@ -177,6 +194,11 @@ export function CalendarWeekView({
                     key={event.id}
                     role="button"
                     tabIndex={0}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('eventId', event.id)
+                      e.dataTransfer.effectAllowed = 'move'
+                    }}
                     onClick={(e) => {
                       e.stopPropagation()
                       onEventClick(event)

@@ -9,9 +9,14 @@ interface CalendarDayViewProps {
   events: CalendarEvent[]
   onEventClick: (event: CalendarEvent) => void
   onTimeSlotClick: (hour: number) => void
+  onEventDrop?: (eventId: string, targetHour: number, targetMinutes: number) => void
 }
 
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6) // 06:00 - 22:00
+const HALF_HOUR_SLOTS = HOURS.flatMap((hour) => [
+  { hour, minutes: 0 },
+  { hour, minutes: 30 },
+])
 const START_HOUR = 6
 const HOUR_HEIGHT = 60 // px por hora
 
@@ -90,6 +95,7 @@ export function CalendarDayView({
   events,
   onEventClick,
   onTimeSlotClick,
+  onEventDrop,
 }: CalendarDayViewProps) {
   const [currentTimePosition, setCurrentTimePosition] = useState(getCurrentTimePosition())
   const dayEvents = events.filter((event) => isSameDay(event.date, currentDate))
@@ -158,23 +164,35 @@ export function CalendarDayView({
         <div
           className={cn('relative flex-1', todayView && 'bg-primary/5')}
         >
-          {/* Linhas de hora (clicáveis) */}
-          {HOURS.map((hour) => (
+          {/* Sub-slots de 30 minutos (clicáveis e droppáveis) */}
+          {HALF_HOUR_SLOTS.map((slot) => (
             <div
-              key={hour}
+              key={`${slot.hour}-${slot.minutes}`}
               role="button"
               tabIndex={0}
-              onClick={() => onTimeSlotClick(hour)}
+              onClick={() => onTimeSlotClick(slot.hour)}
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.dataTransfer.dropEffect = 'move'
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                const eventId = e.dataTransfer.getData('eventId')
+                if (eventId && onEventDrop) {
+                  onEventDrop(eventId, slot.hour, slot.minutes)
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  onTimeSlotClick(hour)
+                  onTimeSlotClick(slot.hour)
                 }
               }}
-              className="h-[60px] border-b border-border/50 hover:bg-primary/10 cursor-pointer transition-colors group relative"
+              className={cn(
+                'h-[30px] hover:bg-primary/10 cursor-pointer transition-colors group relative',
+                slot.minutes === 0 ? 'border-b border-border/20' : 'border-b border-border/50',
+              )}
             >
-              {/* Linha tracejada de meia hora */}
-              <div className="absolute left-0 right-0 top-1/2 border-t border-dashed border-border/30" />
               {/* Indicador de "clique para agendar" no hover */}
               <div className="hidden group-hover:flex items-center justify-center h-full relative z-10">
                 <span className="text-xs text-primary/60 font-medium">
@@ -205,6 +223,11 @@ export function CalendarDayView({
                 key={event.id}
                 role="button"
                 tabIndex={0}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('eventId', event.id)
+                  e.dataTransfer.effectAllowed = 'move'
+                }}
                 onClick={(e) => {
                   e.stopPropagation()
                   onEventClick(event)

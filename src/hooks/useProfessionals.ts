@@ -80,6 +80,7 @@ interface UseProfessionalsReturn {
   professionals: ProfessionalFormatted[]
   professionalsOptions: ProfessionalOption[]
   isLoading: boolean
+  hasLoaded: boolean
   error: string | null
   total: number
   fetchProfessionals: () => Promise<void>
@@ -93,6 +94,7 @@ export function useProfessionals(options: UseProfessionalsOptions = {}): UseProf
 
   const [professionals, setProfessionals] = useState<ProfessionalFormatted[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
 
@@ -101,10 +103,12 @@ export function useProfessionals(options: UseProfessionalsOptions = {}): UseProf
     if (!currentClinica?.id) {
       setProfessionals([])
       setTotal(0)
+      setHasLoaded(true)
       return
     }
 
     setIsLoading(true)
+    setHasLoaded(false)
     setError(null)
 
     try {
@@ -125,6 +129,7 @@ export function useProfessionals(options: UseProfessionalsOptions = {}): UseProf
       toast.error(message)
     } finally {
       setIsLoading(false)
+      setHasLoaded(true)
     }
   }, [currentClinica?.id])
 
@@ -156,6 +161,7 @@ export function useProfessionals(options: UseProfessionalsOptions = {}): UseProf
     professionals,
     professionalsOptions,
     isLoading,
+    hasLoaded,
     error,
     total,
     fetchProfessionals,

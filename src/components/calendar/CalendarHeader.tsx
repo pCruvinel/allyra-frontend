@@ -1,17 +1,18 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Filter, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Select } from '@/components/ui/select'
-import { SegmentedControl } from '@/components/ui/segmented-control'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Filter, X } from 'lucide-react'
 import { BottomSheet, BottomSheetFooter } from '@/components/ui/bottom-sheet'
+import { Button } from '@/components/ui/button'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import { Select } from '@/components/ui/select'
 import { useIsMobile } from '@/hooks/useMediaQuery'
 import { cn } from '@/lib/utils'
-import type { CalendarView, Professional, CalendarEvent } from '@/types'
+import type { CalendarEvent, CalendarView, Professional } from '@/types'
 
 interface CalendarHeaderProps {
   currentDate: Date
   selectedProfessional: string
   professionals: Professional[]
+  allowAllProfessionals?: boolean
   view: CalendarView
   selectedTypes: CalendarEvent['type'][]
   selectedStatuses: CalendarEvent['status'][]
@@ -23,13 +24,13 @@ interface CalendarHeaderProps {
 }
 
 const viewOptions = [
-  { value: 'month', label: 'Mês' },
+  { value: 'month', label: 'Mes' },
   { value: 'week', label: 'Semana' },
   { value: 'day', label: 'Dia' },
 ]
 
 const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
@@ -44,23 +45,24 @@ const STATUS_OPTIONS: { value: CalendarEvent['status']; label: string }[] = [
   { value: 'scheduled', label: 'Agendado' },
   { value: 'confirmed', label: 'Confirmado' },
   { value: 'cancelled', label: 'Cancelado' },
-  { value: 'completed', label: 'Concluído' },
+  { value: 'completed', label: 'Concluido' },
 ]
 
 const typeSelectOptions = [
   { value: '', label: 'Todos' },
-  ...TYPE_OPTIONS.map(t => ({ value: t.value, label: t.label })),
+  ...TYPE_OPTIONS.map((type) => ({ value: type.value, label: type.label })),
 ]
 
 const statusSelectOptions = [
   { value: '', label: 'Todos' },
-  ...STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label })),
+  ...STATUS_OPTIONS.map((status) => ({ value: status.value, label: status.label })),
 ]
 
 export function CalendarHeader({
   currentDate,
   selectedProfessional,
   professionals,
+  allowAllProfessionals = true,
   view,
   selectedTypes,
   selectedStatuses,
@@ -94,68 +96,56 @@ export function CalendarHeader({
   const handleToggleFilters = () => {
     if (isMobile) {
       setMobileFiltersOpen(true)
-    } else {
-      setShowFilters(!showFilters)
+      return
     }
+
+    setShowFilters(!showFilters)
   }
 
-  // Valores atuais para os selects (array → valor único)
   const currentType = selectedTypes.length === 1 ? selectedTypes[0] : ''
   const currentStatus = selectedStatuses.length === 1 ? selectedStatuses[0] : ''
 
   const handleTypeChange = (value: string) => {
     if (value === '') {
       onTypesChange([])
-    } else {
-      onTypesChange([value as CalendarEvent['type']])
+      return
     }
+
+    onTypesChange([value as CalendarEvent['type']])
   }
 
   const handleStatusChange = (value: string) => {
     if (value === '') {
       onStatusesChange([])
-    } else {
-      onStatusesChange([value as CalendarEvent['status']])
+      return
     }
-  }
 
-  const handleProfessionalFilterChange = (value: string) => {
-    onProfessionalChange(value)
+    onStatusesChange([value as CalendarEvent['status']])
   }
 
   const handleClearFilters = () => {
-    onProfessionalChange('')
     onTypesChange([])
     onStatusesChange([])
   }
 
   const professionalOptions = [
-    { value: '', label: 'Todos' },
-    ...professionals.map((p) => ({
-      value: p.id,
-      label: p.name,
+    ...(allowAllProfessionals ? [{ value: '', label: 'Todas as agendas' }] : []),
+    ...professionals.map((professional) => ({
+      value: professional.id,
+      label: professional.name,
     })),
   ]
 
-  const hasActiveFilters = selectedProfessional !== '' || selectedTypes.length > 0 || selectedStatuses.length > 0
-  const activeFilterCount = (selectedProfessional ? 1 : 0) + (selectedTypes.length > 0 ? 1 : 0) + (selectedStatuses.length > 0 ? 1 : 0)
+  const hasAdvancedFilters = selectedTypes.length > 0 || selectedStatuses.length > 0
+  const activeFilterCount = (selectedTypes.length > 0 ? 1 : 0) + (selectedStatuses.length > 0 ? 1 : 0)
+  const selectedProfessionalName = professionals.find(
+    (professional) => professional.id === selectedProfessional,
+  )?.name
+  const agendaScopeLabel = selectedProfessionalName || (allowAllProfessionals ? 'Todas as agendas' : 'Minha agenda')
 
-  // Componente de filtros (reutilizado em desktop e bottom sheet)
   const FiltersContent = () => (
-    <div className={cn(
-      "flex flex-wrap items-end gap-4",
-      isMobile && "flex-col items-stretch"
-    )}>
-      <div className={cn("flex flex-col gap-1", !isMobile && "min-w-[180px]")}>
-        <label className="text-xs font-medium text-muted-foreground">Profissional</label>
-        <Select
-          options={professionalOptions}
-          value={selectedProfessional}
-          onChange={handleProfessionalFilterChange}
-          placeholder="Todos"
-        />
-      </div>
-      <div className={cn("flex flex-col gap-1", !isMobile && "min-w-[140px]")}>
+    <div className={cn('flex flex-wrap items-end gap-4', isMobile && 'flex-col items-stretch')}>
+      <div className={cn('flex flex-col gap-1', !isMobile && 'min-w-[140px]')}>
         <label className="text-xs font-medium text-muted-foreground">Status</label>
         <Select
           options={statusSelectOptions}
@@ -164,7 +154,7 @@ export function CalendarHeader({
           placeholder="Todos"
         />
       </div>
-      <div className={cn("flex flex-col gap-1", !isMobile && "min-w-[160px]")}>
+      <div className={cn('flex flex-col gap-1', !isMobile && 'min-w-[160px]')}>
         <label className="text-xs font-medium text-muted-foreground">Tipo</label>
         <Select
           options={typeSelectOptions}
@@ -173,14 +163,14 @@ export function CalendarHeader({
           placeholder="Todos"
         />
       </div>
-      {!isMobile && hasActiveFilters && (
+      {!isMobile && hasAdvancedFilters && (
         <Button
           variant="outline"
           size="sm"
           onClick={handleClearFilters}
-          className="rounded-full ml-auto"
+          className="ml-auto rounded-full"
         >
-          <X className="w-4 h-4 mr-1" />
+          <X className="mr-1 h-4 w-4" />
           Limpar filtros
         </Button>
       )}
@@ -188,37 +178,36 @@ export function CalendarHeader({
   )
 
   return (
-    <div className="space-y-3 mb-6">
-      {/* Linha 1: Agenda + Navegação + Hoje | View Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+    <div className="mb-6 space-y-3">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg md:text-xl font-bold text-foreground">Agenda</h2>
+          <h2 className="text-lg font-bold text-foreground md:text-xl">Agenda</h2>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={handlePreviousMonth}
-              className="p-1 hover:bg-muted rounded transition-colors"
-              aria-label="Mês anterior"
+              className="rounded p-1 transition-colors hover:bg-muted"
+              aria-label="Mes anterior"
             >
-              <ChevronLeft className="w-5 h-5 text-foreground" />
+              <ChevronLeft className="h-5 w-5 text-foreground" />
             </button>
-            <span className="text-sm md:text-base font-semibold text-foreground min-w-[150px] text-center">
+            <span className="min-w-[150px] text-center text-sm font-semibold text-foreground md:text-base">
               {monthYear}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 hover:bg-muted rounded transition-colors"
-              aria-label="Próximo mês"
+              className="rounded p-1 transition-colors hover:bg-muted"
+              aria-label="Proximo mes"
             >
-              <ChevronRight className="w-5 h-5 text-foreground" />
+              <ChevronRight className="h-5 w-5 text-foreground" />
             </button>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={handleToday}
-            className="rounded-full text-primary border-primary/30 hover:bg-primary/10 font-medium"
+            className="rounded-full border-primary/30 font-medium text-primary hover:bg-primary/10"
           >
             Hoje
           </Button>
@@ -227,66 +216,88 @@ export function CalendarHeader({
         <SegmentedControl
           options={viewOptions}
           value={view}
-          onChange={(v) => onViewChange(v as CalendarView)}
+          onChange={(nextView) => onViewChange(nextView as CalendarView)}
         />
       </div>
 
-      {/* Linha 2: Legenda de tipos | Filtros */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Legenda de tipos */}
+      <div className="grid gap-3 rounded-xl border border-border/60 bg-card/60 p-4 md:grid-cols-[minmax(240px,320px)_1fr]">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Agenda exibida
+          </label>
+          <Select
+            options={professionalOptions}
+            value={selectedProfessional}
+            onChange={onProfessionalChange}
+            placeholder={allowAllProfessionals ? 'Todas as agendas' : 'Selecione o profissional'}
+          />
+        </div>
+        <div className="flex flex-col justify-center gap-2 rounded-lg bg-muted/30 px-3 py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              {selectedProfessional ? 'Agenda individual' : 'Visao consolidada'}
+            </span>
+            <span className="text-sm font-medium text-foreground">{agendaScopeLabel}</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {selectedProfessional
+              ? 'Novos agendamentos abrem com este profissional pre-selecionado.'
+              : 'Selecione um profissional para focar a agenda ou mantenha a visao consolidada.'}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-medium text-foreground uppercase tracking-wide">Tipo:</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-foreground">Tipo:</span>
           {TYPE_OPTIONS.map((item) => (
             <div key={item.value} className="flex items-center gap-1.5">
-              <span className={cn('w-2.5 h-2.5 rounded-full', item.color)} />
-              <span className="text-muted-foreground text-xs">{item.label}</span>
+              <span className={cn('h-2.5 w-2.5 rounded-full', item.color)} />
+              <span className="text-xs text-muted-foreground">{item.label}</span>
             </div>
           ))}
         </div>
 
-        {/* Botão Filtrar */}
         <Button
           variant="outline"
           size={isMobile ? 'icon' : 'default'}
           onClick={handleToggleFilters}
           className={cn(
-            'rounded-full border-border-light text-primary relative',
-            hasActiveFilters && 'bg-primary/10 border-primary',
-            !isMobile && 'gap-1'
+            'relative rounded-full border-border-light text-primary',
+            hasAdvancedFilters && 'border-primary bg-primary/10',
+            !isMobile && 'gap-1',
           )}
         >
-          <Filter className={cn('text-primary', isMobile ? 'w-4 h-4' : 'w-5 h-5')} />
+          <Filter className={cn('text-primary', isMobile ? 'h-4 w-4' : 'h-5 w-5')} />
           {!isMobile && (
             <>
               Filtrar
               {activeFilterCount > 0 && (
-                <span className="ml-1 h-5 min-w-5 px-1 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
+                <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-medium text-primary-foreground">
                   {activeFilterCount}
                 </span>
               )}
               {showFilters ? (
-                <ChevronUp className="w-4 h-4 ml-1" />
+                <ChevronUp className="ml-1 h-4 w-4" />
               ) : (
-                <ChevronDown className="w-4 h-4 ml-1" />
+                <ChevronDown className="ml-1 h-4 w-4" />
               )}
             </>
           )}
           {isMobile && activeFilterCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-medium">
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
               {activeFilterCount}
             </span>
           )}
         </Button>
       </div>
 
-      {/* Filtros Desktop (colapsáveis inline) */}
       {!isMobile && showFilters && (
-        <div className="px-6 py-4 bg-muted/20 border-b border-border/20">
+        <div className="border-b border-border/20 bg-muted/20 px-6 py-4">
           <FiltersContent />
         </div>
       )}
 
-      {/* Filtros Mobile (Bottom Sheet) */}
       {isMobile && (
         <BottomSheet
           open={mobileFiltersOpen}
@@ -295,7 +306,7 @@ export function CalendarHeader({
         >
           <FiltersContent />
           <BottomSheetFooter className="flex gap-2">
-            {hasActiveFilters && (
+            {hasAdvancedFilters && (
               <Button
                 variant="outline"
                 onClick={() => {
