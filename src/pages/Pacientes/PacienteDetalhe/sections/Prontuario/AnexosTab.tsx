@@ -1,34 +1,53 @@
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SearchInput } from '@/components/ui/search-input'
 import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/select'
 import { DocumentCard, DocumentGrid } from '@/components/ui/document-card'
 import { useMedicalData } from '@/hooks/useMedicalData'
 import { toast } from 'sonner'
-import type { MedicalAttachment } from '@/types/medical-record'
+import type { MedicalAttachment, MedicalRecord } from '@/types/medical-record'
 
 interface AnexosTabProps {
   attachments: MedicalAttachment[]
+  records: MedicalRecord[]
   patientId: string
 }
 
-export function AnexosTab({ attachments, patientId }: AnexosTabProps) {
+export function AnexosTab({ attachments, records, patientId }: AnexosTabProps) {
   const { createAnexo, deleteAnexo, isLoading } = useMedicalData({ autoFetch: false })
+  const [displayAttachments, setDisplayAttachments] = useState(attachments)
+  const [selectedRecordId, setSelectedRecordId] = useState(records[0]?.id || '')
   const [searchQuery, setSearchQuery] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const filteredAttachments = attachments.filter((doc) =>
+  useEffect(() => {
+    setDisplayAttachments(attachments)
+  }, [attachments])
+
+  useEffect(() => {
+    if (!selectedRecordId && records[0]?.id) {
+      setSelectedRecordId(records[0].id)
+    }
+  }, [records, selectedRecordId])
+
+  const filteredAttachments = displayAttachments.filter((doc) =>
     doc.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const recordOptions = records.map((record) => ({
+    value: record.id,
+    label: `${record.date} ${record.time} • ${record.diagnosis}`,
+  }))
+
   const handleView = (id: string) => {
-    const doc = attachments.find(a => a.id === id)
+    const doc = displayAttachments.find(a => a.id === id)
     if (doc?.url) {
       window.open(doc.url, '_blank')
     }
   }
 
   const handleDownload = (id: string) => {
-    const doc = attachments.find(a => a.id === id)
+    const doc = displayAttachments.find(a => a.id === id)
     if (doc?.url) {
       const link = document.createElement('a')
       link.href = doc.url
@@ -39,30 +58,45 @@ export function AnexosTab({ attachments, patientId }: AnexosTabProps) {
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este anexo?')) {
-      await deleteAnexo(id)
+      const attachment = displayAttachments.find((item) => item.id === id)
+      const prontuarioId = attachment?.prontuarioId || selectedRecordId
+
+      if (!prontuarioId) {
+        toast.error('Não foi possível identificar o prontuário vinculado a este anexo')
+        return
+      }
+
+      const deleted = await deleteAnexo(id, prontuarioId)
+      if (deleted) {
+        setDisplayAttachments((current) => current.filter((item) => item.id !== id))
+      }
     }
   }
 
   const handleAdd = () => {
+    if (!records.length) {
+      toast.error('Crie um prontuário antes de enviar anexos')
+      return
+    }
     fileInputRef.current?.click()
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // Por enquanto, criar com URL placeholder (depois integrar com Storage)
-    // Em produção, faria upload para Supabase Storage primeiro
-    const fakeUrl = URL.createObjectURL(file)
+    if (!selectedRecordId) {
+      toast.error('Selecione o prontuário ao qual o anexo será vinculado')
+      return
+    }
 
     const result = await createAnexo(patientId, {
-      name: file.name,
-      url: fakeUrl,
+      file,
+      prontuarioId: selectedRecordId,
       type: 'outros',
     })
 
     if (result) {
-      toast.info('Nota: Upload para storage será implementado na próxima fase')
+      setDisplayAttachments((current) => [result, ...current])
     }
 
     // Limpar input
@@ -86,6 +120,15 @@ export function AnexosTab({ attachments, patientId }: AnexosTabProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Documentos anexados</h3>
         <div className="flex items-center gap-3">
+          <div className="w-72">
+            <Select
+              options={recordOptions}
+              value={selectedRecordId}
+              onChange={setSelectedRecordId}
+              placeholder="Selecione o prontuário"
+              disabled={records.length === 0}
+            />
+          </div>
           <div className="w-64">
             <SearchInput
               value={searchQuery}
@@ -95,7 +138,7 @@ export function AnexosTab({ attachments, patientId }: AnexosTabProps) {
           </div>
           <Button
             onClick={handleAdd}
-            disabled={isLoading}
+            disabled={isLoading || records.length === 0}
             className="rounded-full px-6 bg-primary hover:bg-primary/90"
           >
             {isLoading ? 'Adicionando...' : 'Adicionar'}
@@ -110,7 +153,7 @@ export function AnexosTab({ attachments, patientId }: AnexosTabProps) {
             key={doc.id}
             id={doc.id}
             name={doc.name}
-            code={doc.code}
+            code={doc.code || doc.type.toUpperCase()}
             uploadedAt={doc.uploadedAt}
             url={doc.url}
             onView={handleView}
@@ -124,7 +167,9 @@ export function AnexosTab({ attachments, patientId }: AnexosTabProps) {
         <div className="text-center py-8 text-muted-foreground">
           {searchQuery
             ? 'Nenhum documento encontrado para a pesquisa'
-            : 'Nenhum documento anexado'}
+            : records.length === 0
+              ? 'Crie um prontuário para liberar anexos'
+              : 'Nenhum documento anexado'}
         </div>
       )}
     </div>

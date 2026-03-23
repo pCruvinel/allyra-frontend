@@ -1,5 +1,5 @@
 /**
- * Hook para geração de relatórios
+ * Hook para geracao de relatorios
  */
 
 import { useState, useCallback } from 'react'
@@ -34,12 +34,12 @@ export function useRelatorios(options: UseRelatoriosOptions = {}) {
       filtros: Omit<FiltrosRelatorio, 'tipo'>
     ) => {
       if (!currentClinica?.id) {
-        toast.error('Selecione uma clínica para gerar o relatório')
+        toast.error('Selecione uma clinica para gerar o relatorio')
         return
       }
 
       if (!filtros.dateFrom || !filtros.dateTo) {
-        toast.error('Selecione o período para gerar o relatório')
+        toast.error('Selecione o periodo para gerar o relatorio')
         return
       }
 
@@ -52,18 +52,16 @@ export function useRelatorios(options: UseRelatoriosOptions = {}) {
           currentClinica.id
         )
 
-        // Gera nome do arquivo
         const extension = formato === 'pdf' ? 'pdf' : 'xlsx'
         const timestamp = new Date().toISOString().split('T')[0]
         const filename = `relatorio-${tipo}-${timestamp}.${extension}`
 
-        // Faz download
         relatorioService.downloadBlob(blob, filename)
 
-        toast.success(`Relatório gerado com sucesso!`)
+        toast.success('Relatorio gerado com sucesso!')
         options.onSuccess?.(filename)
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Erro ao gerar relatório'
+        const errorMessage = err instanceof Error ? err.message : 'Erro ao gerar relatorio'
         setError(errorMessage)
         toast.error(errorMessage)
         options.onError?.(err instanceof Error ? err : new Error(errorMessage))
@@ -88,18 +86,15 @@ export function useRelatorios(options: UseRelatoriosOptions = {}) {
     [gerar]
   )
 
-  /**
-   * Busca dados para preview do relatório
-   */
   const getPreview = useCallback(
     async (tipo: TipoRelatorio, filtros: Omit<FiltrosRelatorio, 'tipo'>) => {
       if (!currentClinica?.id) {
-        toast.error('Selecione uma clínica')
+        toast.error('Selecione uma clinica')
         return null
       }
 
       if (!filtros.dateFrom || !filtros.dateTo) {
-        toast.error('Selecione o período')
+        toast.error('Selecione o periodo')
         return null
       }
 
@@ -112,7 +107,6 @@ export function useRelatorios(options: UseRelatoriosOptions = {}) {
           currentClinica.id
         )
 
-        // Usa colunas da API se disponíveis, senão usa fallback local
         const colunas = response.colunas && response.colunas.length > 0
           ? response.colunas
           : getColunasRelatorio(tipo)
@@ -155,9 +149,6 @@ export function useRelatorios(options: UseRelatoriosOptions = {}) {
   }
 }
 
-/**
- * Retorna as colunas para cada tipo de relatório
- */
 function getColunasRelatorio(tipo: TipoRelatorio): { key: string; label: string }[] {
   switch (tipo) {
     case 'agenda':
@@ -166,13 +157,20 @@ function getColunasRelatorio(tipo: TipoRelatorio): { key: string; label: string 
         { key: 'hora', label: 'Hora' },
         { key: 'paciente', label: 'Paciente' },
         { key: 'profissional', label: 'Profissional' },
-        { key: 'servico', label: 'Serviço' },
+        { key: 'servico', label: 'Servico' },
         { key: 'status', label: 'Status' },
+      ]
+    case 'escalas':
+      return [
+        { key: 'profissional', label: 'Profissional' },
+        { key: 'horas_alocadas', label: 'Horas alocadas' },
+        { key: 'horas_atendidas', label: 'Horas atendidas' },
+        { key: 'utilizacao', label: 'Utilizacao (%)' },
       ]
     case 'financeiro':
       return [
         { key: 'data', label: 'Data' },
-        { key: 'descricao', label: 'Descrição' },
+        { key: 'descricao', label: 'Descricao' },
         { key: 'paciente', label: 'Paciente' },
         { key: 'valor', label: 'Valor' },
         { key: 'status', label: 'Status' },
@@ -182,8 +180,8 @@ function getColunasRelatorio(tipo: TipoRelatorio): { key: string; label: string 
         { key: 'profissional', label: 'Profissional' },
         { key: 'atendimentos', label: 'Atendimentos' },
         { key: 'valor_bruto', label: 'Valor Bruto' },
-        { key: 'comissao', label: 'Comissão' },
-        { key: 'valor_liquido', label: 'Valor Líquido' },
+        { key: 'comissao', label: 'Comissao' },
+        { key: 'valor_liquido', label: 'Valor Liquido' },
       ]
     case 'paciente':
       return [

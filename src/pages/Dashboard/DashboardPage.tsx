@@ -59,37 +59,37 @@ const statusColors: Record<string, string> = {
 const statCardsConfig = [
   {
     id: 'scheduled',
-    icon: <Calendar className="w-5 h-5" />,
+    icon: <Calendar className="w-4 h-4" />,
     label: 'Consultas agendadas hoje',
     statsKey: 'total' as const,
   },
   {
     id: 'waiting',
-    icon: <Clock className="w-5 h-5" />,
+    icon: <Clock className="w-4 h-4" />,
     label: 'Pacientes aguardando atendimento',
     statsKey: 'waiting' as const,
   },
   {
     id: 'confirmed',
-    icon: <CalendarClock className="w-5 h-5" />,
+    icon: <CalendarClock className="w-4 h-4" />,
     label: 'Agendamentos confirmados',
     statsKey: 'confirmed' as const,
   },
   {
     id: 'completed',
-    icon: <Heart className="w-5 h-5" />,
+    icon: <Heart className="w-4 h-4" />,
     label: 'Atendimentos concluídos hoje',
     statsKey: 'completed' as const,
   },
   {
     id: 'noshow',
-    icon: <CalendarX className="w-5 h-5" />,
+    icon: <CalendarX className="w-4 h-4" />,
     label: 'Faltas no dia (no-show)',
     statsKey: 'noShow' as const,
   },
   {
     id: 'inprogress',
-    icon: <Award className="w-5 h-5" />,
+    icon: <Award className="w-4 h-4" />,
     label: 'Em atendimento agora',
     statsKey: 'inProgress' as const,
   },

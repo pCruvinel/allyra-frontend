@@ -1,12 +1,11 @@
 /**
  * MetasNavbar - Navbar específica do módulo Metas
- * Design: SearchBar | ModeToggle | Tutorial
+ * Design: SearchBar | Tutorial
  */
 
 import { HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MetasSearchBar } from './MetasSearchBar'
-import { ModeToggle } from './ModeToggle'
 import { useMetasMode } from '../contexts/MetasModeContext'
 
 type TabView = 'pacientes' | 'registro' | 'planos' | 'atendimento' | 'devolutiva'
@@ -37,8 +36,6 @@ export function MetasNavbar({
 
       {/* Ações à direita */}
       <div className="flex items-center gap-3">
-        <ModeToggle />
-
         <Button
           variant="ghost"
           size="sm"

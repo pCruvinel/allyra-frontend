@@ -1,5 +1,5 @@
 /**
- * Card de tipo de relatório
+ * Card de tipo de relatorio
  */
 
 import {
@@ -12,6 +12,7 @@ import {
   Package,
   Home,
   FileText,
+  ClipboardList,
   LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,7 @@ const iconMap: Record<string, LucideIcon> = {
   Package,
   Home,
   FileText,
+  ClipboardList,
 }
 
 interface ReportTypeCardProps {

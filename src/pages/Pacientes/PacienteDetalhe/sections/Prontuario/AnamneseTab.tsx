@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { useMedicalData } from '@/hooks/useMedicalData'
 import type { Anamnesis } from '@/types/medical-record'
 
 interface AnamneseTabProps {
-  anamnesis?: Anamnesis
+  anamnesis?: Anamnesis | null
   patientId: string
 }
 
@@ -20,6 +20,14 @@ export function AnamneseTab({ anamnesis, patientId }: AnamneseTabProps) {
     hasHereditaryDisease: anamnesis?.hasHereditaryDisease ? 'Sim' : 'Não',
     usesMedication: anamnesis?.usesMedication ? 'Sim' : 'Não',
   })
+
+  useEffect(() => {
+    setFormData((current) => ({
+      ...current,
+      hasHereditaryDisease: anamnesis?.hasHereditaryDisease ? 'Sim' : 'NÃ£o',
+      usesMedication: anamnesis?.usesMedication ? 'Sim' : 'NÃ£o',
+    }))
+  }, [anamnesis])
 
   const handleSave = async () => {
     await saveAnamnese(patientId, {

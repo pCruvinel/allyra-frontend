@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Eye, FileText, Send, Ban, MessageCircle } from 'lucide-react'
+import { Eye, FileText, Send, Ban, MessageCircle } from 'lucide-react'
 import { DataTable, SimpleDropdownMenu, FloatingButton } from '@/components/ui'
 import { FinancialSummaryCard } from '@/components/ui/progress-bar'
 import { ChatPanel } from '@/components/chat'
@@ -211,9 +211,7 @@ export function ContasAReceberPage() {
     setFilters(newFilters)
   }
 
-  const handleGoBack = () => {
-    navigate({ to: '/financeiro' })
-  }
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true)
@@ -221,22 +219,6 @@ export function ContasAReceberPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>Contas a receber</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Início</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Financeiro</span>
-          <span className="text-muted-foreground">›</span>
-          <span className="text-foreground">Contas a receber</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Tabela */}

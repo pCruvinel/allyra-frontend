@@ -19,6 +19,10 @@
 
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
+import type {
+  PatientEngagementResponse,
+  ProfessionalWorkloadSummary,
+} from '@/types/clinical-intelligence'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -135,6 +139,37 @@ export interface Appointment {
   }
 }
 
+interface ApiErrorPayload {
+  error?: string
+  code?: string
+  details?: unknown
+  pendingGoals?: unknown
+  data?: unknown
+  [key: string]: unknown
+}
+
+export class ApiRequestError extends Error {
+  status: number
+  code?: string
+  details?: unknown
+  payload?: ApiErrorPayload
+
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    details?: unknown,
+    payload?: ApiErrorPayload,
+  ) {
+    super(message)
+    this.name = 'ApiRequestError'
+    this.status = status
+    this.code = code
+    this.details = details
+    this.payload = payload
+  }
+}
+
 // ============================================================
 // HELPERS PRIVADOS
 // ============================================================
@@ -221,7 +256,7 @@ async function fetchAPI<T>(
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Erro desconhecido' }))
+      const error = await response.json().catch(() => ({ error: 'Erro desconhecido' })) as ApiErrorPayload
       const errorMessage = error.error || `HTTP ${response.status}`
 
       // Se recebeu 401 (não autorizado), tenta renovar o token
@@ -252,10 +287,26 @@ async function fetchAPI<T>(
         }
       }
 
-      throw new Error(errorMessage)
+      throw new ApiRequestError(
+        errorMessage,
+        response.status,
+        error.code,
+        error.details ?? error.pendingGoals ?? error.data ?? null,
+        error,
+      )
     }
 
-    return await response.json()
+    // 204 No Content or empty body — return safe default
+    if (response.status === 204) {
+      return { success: true } as unknown as T
+    }
+
+    const text = await response.text()
+    if (!text) {
+      return { success: true } as unknown as T
+    }
+
+    return JSON.parse(text) as T
   } catch (error) {
     logger.error('API', `Erro em ${endpoint}:`, error)
     throw error
@@ -392,6 +443,18 @@ export const apiService = {
   },
 
   /**
+   * Busca mÃ©tricas de engajamento e pacientes sinalizados
+   */
+  async getPatientEngagement(clinicaId: string): Promise<ApiResponse<PatientEngagementResponse>> {
+    return await fetchAPI<ApiResponse<PatientEngagementResponse>>(
+      `/api/patients/engagement?clinica_id=${clinicaId}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    )
+  },
+
+  /**
    * Busca agendamentos de uma clínica
    * @param clinicaId - ID da clínica
    * @param date - Data específica (opcional, formato YYYY-MM-DD)
@@ -400,14 +463,14 @@ export const apiService = {
   async getAppointments(
     clinicaId: string,
     date?: string,
-    mode?: 'today' | 'week' | 'month' | 'all'
+    mode?: 'today' | 'day' | 'week' | 'month' | 'all'
   ): Promise<ApiResponse<Appointment[]>> {
     const queryParams = new URLSearchParams({ clinica_id: clinicaId })
     if (date) {
       queryParams.append('date', date)
     }
     if (mode) {
-      queryParams.append('mode', mode)
+      queryParams.append('mode', mode === 'today' ? 'day' : mode)
     }
 
     return await fetchAPI<ApiResponse<Appointment[]>>(
@@ -524,11 +587,33 @@ export const apiService = {
   /**
    * Cria série de agendamentos recorrentes
    */
-  async createRecurrentAppointment(data: any, clinicaId: string): Promise<ApiResponse<{ success: boolean; criados: number; conflitos: number; conflitos_detalhes: any[] }>> {
-    return await fetchAPI<ApiResponse<{ success: boolean; criados: number; conflitos: number; conflitos_detalhes: any[] }>>('/api/appointments/recurrent', {
+  async createRecurrentAppointment(data: any, clinicaId: string): Promise<ApiResponse<{ success: boolean; criados: number; conflitos: number; conflitos_detalhes: any[]; serie_recorrencia_id: string }>> {
+    return await fetchAPI<ApiResponse<{ success: boolean; criados: number; conflitos: number; conflitos_detalhes: any[]; serie_recorrencia_id: string }>>('/api/appointments/recurrent', {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ ...data, clinica_id: clinicaId }),
+    })
+  },
+
+  /**
+   * Edita agendamentos futuros de uma série recorrente
+   */
+  async editSeriesAppointments(serieId: string, applyFrom: string, changes: Record<string, unknown>): Promise<ApiResponse<{ success: boolean; updated: number }>> {
+    return await fetchAPI<ApiResponse<{ success: boolean; updated: number }>>(`/api/appointments/series/${serieId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ apply_from: applyFrom, changes }),
+    })
+  },
+
+  /**
+   * Cancela agendamentos futuros de uma série recorrente
+   */
+  async cancelSeriesAppointments(serieId: string, cancelFrom: string, motivo?: string): Promise<ApiResponse<{ success: boolean; cancelled: number }>> {
+    return await fetchAPI<ApiResponse<{ success: boolean; cancelled: number }>>(`/api/appointments/series/${serieId}/cancel`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ cancel_from: cancelFrom, motivo }),
     })
   },
 
@@ -545,12 +630,53 @@ export const apiService = {
 
   /**
    * Registra check-in formal do agendamento na recepção
+   * Suporta 3 métodos: fotografia (multipart), assinatura (multipart), manual (JSON)
    */
-  async checkInAppointment(id: string): Promise<ApiResponse<Appointment>> {
-    return await fetchAPI<ApiResponse<Appointment>>(`/api/appointments/${id}/checkin`, {
+  async checkInAppointment(
+    id: string,
+    data: {
+      metodo_checkin: 'fotografia' | 'assinatura' | 'manual'
+      evidencia_file?: File
+      justificativa_manual?: string
+    }
+  ): Promise<ApiResponse<any>> {
+    const token = getAccessToken()
+    if (!token) throw new Error('Token de acesso não encontrado')
+
+    if (data.metodo_checkin === 'manual') {
+      // JSON body for manual check-in
+      return await fetchAPI<ApiResponse<any>>(`/api/appointments/${id}/checkin`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          metodo_checkin: data.metodo_checkin,
+          justificativa_manual: data.justificativa_manual,
+        }),
+      })
+    }
+
+    // Multipart for fotografia/assinatura
+    const formData = new FormData()
+    formData.append('metodo_checkin', data.metodo_checkin)
+    if (data.evidencia_file) {
+      formData.append('evidencia_file', data.evidencia_file)
+    }
+
+    const url = `${API_URL}/api/appointments/${id}/checkin`
+    const response = await fetch(url, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Do NOT set Content-Type — browser auto-sets it with boundary for FormData
+      },
+      body: formData,
     })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Erro desconhecido' }))
+      throw new Error(error.error || `HTTP ${response.status}`)
+    }
+    return await response.json()
   },
 
   /**
@@ -626,6 +752,87 @@ export const apiService = {
   async getProfessionals(clinicaId: string): Promise<ApiResponse<any[]>> {
     return await fetchAPI<ApiResponse<any[]>>(
       `/api/professionals?clinica_id=${clinicaId}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    )
+  },
+
+  /**
+   * Busca escalas de profissionais
+   */
+  async getSchedules(
+    clinicaId: string,
+    options?: { profissionalId?: string; vigenciaData?: string }
+  ): Promise<ApiResponse<any[]>> {
+    const queryParams = new URLSearchParams({ clinica_id: clinicaId })
+    if (options?.profissionalId) {
+      queryParams.append('profissional_id', options.profissionalId)
+    }
+    if (options?.vigenciaData) {
+      queryParams.append('vigencia_data', options.vigenciaData)
+    }
+
+    return await fetchAPI<ApiResponse<any[]>>(
+      `/api/schedules?${queryParams.toString()}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    )
+  },
+
+  /**
+   * Cria nova escala
+   */
+  async createSchedule(data: Record<string, unknown>): Promise<ApiResponse<any>> {
+    return await fetchAPI<ApiResponse<any>>('/api/schedules', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    })
+  },
+
+  /**
+   * Atualiza escala existente
+   */
+  async updateSchedule(id: string, data: Record<string, unknown>): Promise<ApiResponse<any>> {
+    return await fetchAPI<ApiResponse<any>>(`/api/schedules/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    })
+  },
+
+  /**
+   * Remove escala
+   */
+  async deleteSchedule(id: string): Promise<{ success: boolean }> {
+    return await fetchAPI<{ success: boolean }>(`/api/schedules/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    })
+  },
+
+  /**
+   * Busca carga horÃ¡ria consolidada por profissional/perÃ­odo
+   */
+  async getSchedulesWorkload(
+    clinicaId: string,
+    dataInicio: string,
+    dataFim: string,
+    profissionalId?: string
+  ): Promise<ApiResponse<ProfessionalWorkloadSummary[]>> {
+    const queryParams = new URLSearchParams({
+      clinica_id: clinicaId,
+      data_inicio: dataInicio,
+      data_fim: dataFim,
+    })
+    if (profissionalId) {
+      queryParams.append('profissional_id', profissionalId)
+    }
+
+    return await fetchAPI<ApiResponse<ProfessionalWorkloadSummary[]>>(
+      `/api/schedules/workload?${queryParams.toString()}`,
       {
         headers: getAuthHeaders(),
       }

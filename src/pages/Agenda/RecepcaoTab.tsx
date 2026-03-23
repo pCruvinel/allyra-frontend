@@ -23,7 +23,10 @@ import { Button } from '@/components/ui/button'
 import { useAppointments, type AppointmentFormatted } from '@/hooks/useAppointments'
 import { cn } from '@/lib/utils'
 import { FileText } from 'lucide-react'
-import { ConfirmArrivalModal } from '@/components/modals/ConfirmArrivalModal'
+import { CheckinModal } from '@/components/modals/CheckinModal'
+import { apiService } from '@/services/api.service'
+import { toast } from 'sonner'
+import { XCircle } from 'lucide-react'
 
 // -------------------------------------------
 // Helpers
@@ -169,7 +172,6 @@ export function RecepcaoTab() {
   const {
     appointments,
     isLoading,
-    registerArrival,
     startAttendance,
     completeAttendance,
     stats,
@@ -206,17 +208,9 @@ export function RecepcaoTab() {
     setArrivalModalInfo({ isOpen: true, appointment: apt })
   }
 
-  const handleConfirmArrival = () => {
-    const apt = arrivalModalInfo.appointment
-    if (apt) {
-      withLoading(apt.id, async () => {
-        const success = await registerArrival(apt.id)
-        if (success) {
-          setArrivalModalInfo({ isOpen: false, appointment: null })
-        }
-        return success
-      })
-    }
+  const handleCheckinSuccess = () => {
+    setArrivalModalInfo({ isOpen: false, appointment: null })
+    refresh()
   }
 
   const handleStartAttendance = (apt: AppointmentFormatted) => {
@@ -299,6 +293,26 @@ export function RecepcaoTab() {
                   icon: <UserCheck className="w-3.5 h-3.5" />,
                   onClick: () => handleRegisterArrival(apt),
                 },
+                ...(apt.serieRecorrenciaId ? [{
+                  label: 'Cancelar série',
+                  icon: <XCircle className="w-3.5 h-3.5" />,
+                  variant: 'outline' as const,
+                  onClick: async () => {
+                    if (!confirm('Cancelar todos os agendamentos futuros desta série?')) return
+                    try {
+                      const today = new Date().toISOString().split('T')[0]
+                      const resp = await apiService.cancelSeriesAppointments(apt.serieRecorrenciaId!, today)
+                      if (resp.error) {
+                        toast.error(resp.error)
+                      } else {
+                        toast.success(`${resp.data?.cancelled || 0} agendamentos da série cancelados`)
+                        refresh()
+                      }
+                    } catch {
+                      toast.error('Erro ao cancelar série')
+                    }
+                  },
+                }] : []),
               ]}
             />
           ))}
@@ -382,13 +396,11 @@ export function RecepcaoTab() {
 
       {/* Moda de chekin */}
       {arrivalModalInfo.appointment && (
-        <ConfirmArrivalModal
+        <CheckinModal
           isOpen={arrivalModalInfo.isOpen}
           onClose={() => setArrivalModalInfo({ isOpen: false, appointment: null })}
-          onConfirm={handleConfirmArrival}
-          patientName={arrivalModalInfo.appointment.patientName}
-          date={arrivalModalInfo.appointment.dateStr || ''}
-          time={arrivalModalInfo.appointment.time || ''}
+          onSuccess={handleCheckinSuccess}
+          appointment={arrivalModalInfo.appointment}
         />
       )}
     </div>

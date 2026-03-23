@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import {
-  ArrowLeft,
   MessageCircle,
   Ban,
   KeyRound,
@@ -43,7 +42,6 @@ function StatCard({ icon, value, label, valueColor = 'text-primary' }: StatCardP
 
 export function ClienteDetalhePage() {
   const { clienteId } = useParams({ from: '/clientes/$clienteId' })
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<TabType>('identification')
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
@@ -109,9 +107,7 @@ export function ClienteDetalhePage() {
     loadClient()
   }, [clienteId, getClientById, getClientMetrics])
 
-  const handleGoBack = () => {
-    navigate({ to: '/clientes' })
-  }
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true)
@@ -201,22 +197,6 @@ export function ClienteDetalhePage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>Clientes</span>
-          <span className="text-muted-foreground/60">›</span>
-          <span>Início</span>
-          <span className="text-muted-foreground/60">›</span>
-          <span>Clientes</span>
-          <span className="text-muted-foreground/60">›</span>
-          <span className="text-foreground">{client.fantasyName}</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6">
         {/* Tabs */}

@@ -6,17 +6,13 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Select } from '@/components/ui/select'
 import { useIsMobile } from '@/hooks/useMediaQuery'
 import { cn } from '@/lib/utils'
-import type { CalendarEvent, CalendarView, Professional } from '@/types'
+import type { CalendarEvent, CalendarView } from '@/types'
 
 interface CalendarHeaderProps {
   currentDate: Date
-  selectedProfessional: string
-  professionals: Professional[]
-  allowAllProfessionals?: boolean
   view: CalendarView
   selectedTypes: CalendarEvent['type'][]
   selectedStatuses: CalendarEvent['status'][]
-  onProfessionalChange: (id: string) => void
   onDateChange: (date: Date) => void
   onViewChange: (view: CalendarView) => void
   onTypesChange: (types: CalendarEvent['type'][]) => void
@@ -60,13 +56,9 @@ const statusSelectOptions = [
 
 export function CalendarHeader({
   currentDate,
-  selectedProfessional,
-  professionals,
-  allowAllProfessionals = true,
   view,
   selectedTypes,
   selectedStatuses,
-  onProfessionalChange,
   onDateChange,
   onViewChange,
   onTypesChange,
@@ -128,20 +120,8 @@ export function CalendarHeader({
     onStatusesChange([])
   }
 
-  const professionalOptions = [
-    ...(allowAllProfessionals ? [{ value: '', label: 'Todas as agendas' }] : []),
-    ...professionals.map((professional) => ({
-      value: professional.id,
-      label: professional.name,
-    })),
-  ]
-
   const hasAdvancedFilters = selectedTypes.length > 0 || selectedStatuses.length > 0
   const activeFilterCount = (selectedTypes.length > 0 ? 1 : 0) + (selectedStatuses.length > 0 ? 1 : 0)
-  const selectedProfessionalName = professionals.find(
-    (professional) => professional.id === selectedProfessional,
-  )?.name
-  const agendaScopeLabel = selectedProfessionalName || (allowAllProfessionals ? 'Todas as agendas' : 'Minha agenda')
 
   const FiltersContent = () => (
     <div className={cn('flex flex-wrap items-end gap-4', isMobile && 'flex-col items-stretch')}>
@@ -218,33 +198,6 @@ export function CalendarHeader({
           value={view}
           onChange={(nextView) => onViewChange(nextView as CalendarView)}
         />
-      </div>
-
-      <div className="grid gap-3 rounded-xl border border-border/60 bg-card/60 p-4 md:grid-cols-[minmax(240px,320px)_1fr]">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Agenda exibida
-          </label>
-          <Select
-            options={professionalOptions}
-            value={selectedProfessional}
-            onChange={onProfessionalChange}
-            placeholder={allowAllProfessionals ? 'Todas as agendas' : 'Selecione o profissional'}
-          />
-        </div>
-        <div className="flex flex-col justify-center gap-2 rounded-lg bg-muted/30 px-3 py-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-              {selectedProfessional ? 'Agenda individual' : 'Visao consolidada'}
-            </span>
-            <span className="text-sm font-medium text-foreground">{agendaScopeLabel}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {selectedProfessional
-              ? 'Novos agendamentos abrem com este profissional pre-selecionado.'
-              : 'Selecione um profissional para focar a agenda ou mantenha a visao consolidada.'}
-          </p>
-        </div>
       </div>
 
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">

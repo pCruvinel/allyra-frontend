@@ -65,17 +65,22 @@ export function useModuleAccess(): UseModuleAccessReturn {
     })
   }, [currentPerfil])
 
+  const isPermissionAwareModule = (moduleSlug: string): boolean => {
+    if (isModuleAvailable(moduleSlug)) return true
+    return moduleSlug === 'prontuario'
+  }
+
   // Verifica se usuário pode acessar um módulo
   const canAccess = (moduleSlug: string): boolean => {
     if (!currentPerfil) return false
-    if (!isModuleAvailable(moduleSlug)) return false
+    if (!isPermissionAwareModule(moduleSlug)) return false
     return canAccessModule(currentPerfil, moduleSlug)
   }
 
   // Verifica permissão específica
   const checkPermission = (moduleSlug: string, action: PermissionAction): boolean => {
     if (!currentPerfil) return false
-    if (!isModuleAvailable(moduleSlug)) return false
+    if (!isPermissionAwareModule(moduleSlug)) return false
     return hasPermission(currentPerfil, moduleSlug, action)
   }
 

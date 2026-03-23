@@ -157,15 +157,6 @@ export function AuditoriaPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-background border-b border-border px-4 md:px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Auditoria</span>
-          <span className="text-muted-foreground/50">›</span>
-          <span className="text-foreground">Central de auditoria</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-4 md:p-6">
         <div className="bg-card rounded-2xl border border-border">

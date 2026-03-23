@@ -1,27 +1,24 @@
-/**
- * Hook para gerenciamento de dados médicos
- * Prontuários, evoluções, anamnese e anexos
- */
-
-import { useState, useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import {
   medicalService,
-  type ProntuarioFormatted,
-  type EvolucaoClinicaFormatted,
-  type TratamentoHistoricoFormatted,
   type AnamneseFormatted,
   type AnexoMedicoFormatted,
+  type EvolucaoClinicaFormatted,
+  type EvolucaoEtapaFormatted,
   type PatientMedicalDataFormatted,
+  type ProntuarioFormatted,
+  type TratamentoHistoricoFormatted,
 } from '@/services/medical.service'
+import type { ServiceResponse } from '@/services/types'
 import { useAuth } from '@/contexts/AuthContext'
+import type { MedicalAttachmentType, MedicalRecordErrata } from '@/types/medical-record'
 
 interface UseMedicalDataOptions {
   patientId?: string
   autoFetch?: boolean
 }
 
-// Tipos para input de criação/atualização
 interface SaveAnamneseInput {
   hasHereditaryDisease: boolean
   hereditaryDiseaseDetails?: string
@@ -41,10 +38,11 @@ interface CreateEtapaInput {
   description: string
   date?: string
   time?: string
-  status?: 'Concluído' | 'Pendente'
+  status?: 'Concluido' | 'Pendente' | 'Concluído'
 }
 
 interface CreateProntuarioInput {
+  agendamentoId: string
   diagnosis: string
   complaint: string
   diseaseHistory?: string
@@ -54,26 +52,20 @@ interface CreateProntuarioInput {
 }
 
 interface CreateAnexoInput {
-  name: string
-  url: string
-  code?: string
-  type?: 'exame' | 'receita' | 'laudo' | 'outros'
-  prontuarioId?: string
+  file: File
+  prontuarioId: string
+  type?: MedicalAttachmentType
+  description?: string
 }
 
 interface UseMedicalDataReturn {
-  // Dados
   records: ProntuarioFormatted[]
   evolutions: EvolucaoClinicaFormatted[]
   treatmentHistory: TratamentoHistoricoFormatted[]
   anamnesis: AnamneseFormatted | null
   attachments: AnexoMedicoFormatted[]
-
-  // Estado
   isLoading: boolean
   error: string | null
-
-  // Métodos de leitura
   fetchMedicalData: (patientId: string) => Promise<PatientMedicalDataFormatted | null>
   fetchProntuarios: (patientId: string) => Promise<ProntuarioFormatted[]>
   fetchEvolucoes: (patientId: string) => Promise<EvolucaoClinicaFormatted[]>
@@ -81,14 +73,14 @@ interface UseMedicalDataReturn {
   fetchAnamnese: (patientId: string) => Promise<AnamneseFormatted | null>
   fetchAnexos: (patientId: string) => Promise<AnexoMedicoFormatted[]>
   refresh: () => Promise<void>
-
-  // Métodos de escrita
   saveAnamnese: (patientId: string, data: SaveAnamneseInput) => Promise<AnamneseFormatted | null>
   createEvolucao: (patientId: string, data: CreateEvolucaoInput) => Promise<EvolucaoClinicaFormatted | null>
-  createEvolucaoEtapa: (evolucaoId: string, data: CreateEtapaInput) => Promise<boolean>
+  createEvolucaoEtapa: (evolucaoId: string, data: CreateEtapaInput) => Promise<EvolucaoEtapaFormatted | null>
   createProntuario: (patientId: string, data: CreateProntuarioInput) => Promise<ProntuarioFormatted | null>
+  signProntuario: (recordId: string) => Promise<ServiceResponse<ProntuarioFormatted>>
+  createErrata: (recordId: string, text: string) => Promise<MedicalRecordErrata | null>
   createAnexo: (patientId: string, data: CreateAnexoInput) => Promise<AnexoMedicoFormatted | null>
-  deleteAnexo: (anexoId: string) => Promise<boolean>
+  deleteAnexo: (attachmentId: string, prontuarioId: string) => Promise<boolean>
 }
 
 export function useMedicalData(options: UseMedicalDataOptions = {}): UseMedicalDataReturn {
@@ -103,302 +95,304 @@ export function useMedicalData(options: UseMedicalDataOptions = {}): UseMedicalD
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchMedicalData = useCallback(async (pId: string): Promise<PatientMedicalDataFormatted | null> => {
+  const applyMedicalData = useCallback((data: PatientMedicalDataFormatted) => {
+    setRecords(data.records)
+    setEvolutions(data.evolutions)
+    setTreatmentHistory(data.treatmentHistory)
+    setAnamnesis(data.anamnesis)
+    setAttachments(data.attachments)
+  }, [])
+
+  const fetchMedicalData = useCallback(async (requestedPatientId: string) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const result = await medicalService.getPatientMedicalData(pId, currentClinica?.id)
+      const result = await medicalService.getPatientMedicalData(requestedPatientId, currentClinica?.id)
 
-      if (result.error) {
-        setError(result.error.message)
-        if (result.error.code !== 'SUPABASE_NOT_CONFIGURED') {
-          toast.error(result.error.message)
-        }
+      if (result.error || !result.data) {
+        const message = result.error?.message || 'Erro ao buscar dados medicos'
+        setError(message)
+        toast.error(message)
         return null
       }
 
-      const data = result.data!
-      setRecords(data.records)
-      setEvolutions(data.evolutions)
-      setTreatmentHistory(data.treatmentHistory)
-      setAnamnesis(data.anamnesis)
-      setAttachments(data.attachments)
-
-      return data
+      applyMedicalData(result.data)
+      return result.data
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao buscar dados médicos'
+      const message = err instanceof Error ? err.message : 'Erro ao buscar dados medicos'
       setError(message)
       toast.error(message)
       return null
     } finally {
       setIsLoading(false)
     }
-  }, [currentClinica?.id])
+  }, [applyMedicalData, currentClinica?.id])
 
-  const fetchProntuarios = useCallback(async (pId: string): Promise<ProntuarioFormatted[]> => {
-    try {
-      const result = await medicalService.getProntuarios(pId, currentClinica?.id)
-      if (result.error) {
-        if (result.error.code !== 'SUPABASE_NOT_CONFIGURED') {
-          toast.error(result.error.message)
-        }
-        return []
-      }
-      setRecords(result.data || [])
-      return result.data || []
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao buscar prontuários'
-      toast.error(message)
+  const fetchProntuarios = useCallback(async (requestedPatientId: string) => {
+    const result = await medicalService.getProntuarios(requestedPatientId, currentClinica?.id)
+    if (result.error) {
+      toast.error(result.error.message)
       return []
     }
+
+    const nextRecords = result.data || []
+    setRecords(nextRecords)
+    return nextRecords
   }, [currentClinica?.id])
 
-  const fetchEvolucoes = useCallback(async (pId: string): Promise<EvolucaoClinicaFormatted[]> => {
-    try {
-      const result = await medicalService.getEvolucoes(pId, currentClinica?.id)
-      if (result.error) {
-        if (result.error.code !== 'SUPABASE_NOT_CONFIGURED') {
-          toast.error(result.error.message)
-        }
-        return []
-      }
-      setEvolutions(result.data || [])
-      return result.data || []
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao buscar evoluções'
-      toast.error(message)
+  const fetchEvolucoes = useCallback(async (requestedPatientId: string) => {
+    const result = await medicalService.getEvolucoes(requestedPatientId, currentClinica?.id)
+    if (result.error) {
+      toast.error(result.error.message)
       return []
     }
+
+    const nextEvolutions = result.data || []
+    setEvolutions(nextEvolutions)
+    return nextEvolutions
   }, [currentClinica?.id])
 
-  const fetchTratamentos = useCallback(async (pId: string): Promise<TratamentoHistoricoFormatted[]> => {
-    try {
-      const result = await medicalService.getTratamentos(pId, currentClinica?.id)
-      if (result.error) {
-        if (result.error.code !== 'SUPABASE_NOT_CONFIGURED') {
-          toast.error(result.error.message)
-        }
-        return []
-      }
-      setTreatmentHistory(result.data || [])
-      return result.data || []
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao buscar tratamentos'
-      toast.error(message)
+  const fetchTratamentos = useCallback(async (requestedPatientId: string) => {
+    const result = await medicalService.getTratamentos(requestedPatientId, currentClinica?.id)
+    if (result.error) {
+      toast.error(result.error.message)
       return []
     }
+
+    const nextHistory = result.data || []
+    setTreatmentHistory(nextHistory)
+    return nextHistory
   }, [currentClinica?.id])
 
-  const fetchAnamnese = useCallback(async (pId: string): Promise<AnamneseFormatted | null> => {
-    try {
-      const result = await medicalService.getAnamnese(pId, currentClinica?.id)
-      if (result.error) {
-        if (result.error.code !== 'SUPABASE_NOT_CONFIGURED') {
-          toast.error(result.error.message)
-        }
-        return null
-      }
-      setAnamnesis(result.data || null)
-      return result.data || null
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao buscar anamnese'
-      toast.error(message)
+  const fetchAnamnese = useCallback(async (requestedPatientId: string) => {
+    const result = await medicalService.getAnamnese(requestedPatientId, currentClinica?.id)
+    if (result.error) {
+      toast.error(result.error.message)
       return null
     }
+
+    const nextAnamnese = result.data || null
+    setAnamnesis(nextAnamnese)
+    return nextAnamnese
   }, [currentClinica?.id])
 
-  const fetchAnexos = useCallback(async (pId: string): Promise<AnexoMedicoFormatted[]> => {
-    try {
-      const result = await medicalService.getAnexos(pId, currentClinica?.id)
-      if (result.error) {
-        if (result.error.code !== 'SUPABASE_NOT_CONFIGURED') {
-          toast.error(result.error.message)
-        }
-        return []
-      }
-      setAttachments(result.data || [])
-      return result.data || []
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao buscar anexos'
-      toast.error(message)
+  const fetchAnexos = useCallback(async (requestedPatientId: string) => {
+    const result = await medicalService.getAnexos(requestedPatientId, currentClinica?.id)
+    if (result.error) {
+      toast.error(result.error.message)
       return []
     }
+
+    const nextAttachments = result.data || []
+    setAttachments(nextAttachments)
+    return nextAttachments
   }, [currentClinica?.id])
 
   const refresh = useCallback(async () => {
-    if (patientId) {
-      await fetchMedicalData(patientId)
-    }
-  }, [patientId, fetchMedicalData])
+    if (!patientId) return
+    await fetchMedicalData(patientId)
+  }, [fetchMedicalData, patientId])
 
-  // =====================================================
-  // MÉTODOS DE ESCRITA
-  // =====================================================
-
-  const saveAnamnese = useCallback(async (
-    pId: string,
-    data: SaveAnamneseInput
-  ): Promise<AnamneseFormatted | null> => {
+  const saveAnamnese = useCallback(async (requestedPatientId: string, data: SaveAnamneseInput) => {
     if (!currentClinica?.id) {
-      toast.error('Clínica não selecionada')
+      toast.error('Clinica nao selecionada')
       return null
     }
 
     setIsLoading(true)
     try {
-      const result = await medicalService.upsertAnamnese(pId, currentClinica.id, data)
-      if (result.error) {
-        toast.error(result.error.message)
+      const result = await medicalService.upsertAnamnese(requestedPatientId, currentClinica.id, data)
+      if (result.error || !result.data) {
+        toast.error(result.error?.message || 'Erro ao salvar anamnese')
         return null
       }
-      toast.success('Anamnese salva com sucesso!')
-      setAnamnesis(result.data!)
-      return result.data!
-    } catch {
-      toast.error('Erro ao salvar anamnese')
-      return null
+
+      setAnamnesis(result.data)
+      toast.success('Anamnese salva com sucesso')
+      return result.data
     } finally {
       setIsLoading(false)
     }
   }, [currentClinica?.id])
 
-  const createEvolucao = useCallback(async (
-    pId: string,
-    data: CreateEvolucaoInput
-  ): Promise<EvolucaoClinicaFormatted | null> => {
+  const createEvolucao = useCallback(async (requestedPatientId: string, data: CreateEvolucaoInput) => {
     if (!currentClinica?.id) {
-      toast.error('Clínica não selecionada')
+      toast.error('Clinica nao selecionada')
       return null
     }
 
     setIsLoading(true)
     try {
-      const result = await medicalService.createEvolucao(pId, currentClinica.id, data)
-      if (result.error) {
-        toast.error(result.error.message)
+      const result = await medicalService.createEvolucao(requestedPatientId, currentClinica.id, data)
+      if (result.error || !result.data) {
+        toast.error(result.error?.message || 'Erro ao criar evolucao')
         return null
       }
-      toast.success('Evolução clínica criada!')
-      setEvolutions(prev => [result.data!, ...prev])
-      return result.data!
-    } catch {
-      toast.error('Erro ao criar evolução')
-      return null
+
+      setEvolutions((current) => [result.data!, ...current])
+      toast.success('Evolucao clinica criada')
+      return result.data
     } finally {
       setIsLoading(false)
     }
   }, [currentClinica?.id])
 
-  const createEvolucaoEtapa = useCallback(async (
-    evolucaoId: string,
-    data: CreateEtapaInput
-  ): Promise<boolean> => {
+  const createEvolucaoEtapa = useCallback(async (evolucaoId: string, data: CreateEtapaInput) => {
     setIsLoading(true)
     try {
       const result = await medicalService.createEvolucaoEtapa(evolucaoId, data)
-      if (result.error) {
-        toast.error(result.error.message)
-        return false
-      }
-      toast.success('Etapa adicionada!')
-      // Atualizar a evolução no estado
-      if (patientId) {
-        await fetchEvolucoes(patientId)
-      }
-      return true
-    } catch {
-      toast.error('Erro ao criar etapa')
-      return false
-    } finally {
-      setIsLoading(false)
-    }
-  }, [patientId, fetchEvolucoes])
-
-  const createProntuario = useCallback(async (
-    pId: string,
-    data: CreateProntuarioInput
-  ): Promise<ProntuarioFormatted | null> => {
-    if (!currentClinica?.id) {
-      toast.error('Clínica não selecionada')
-      return null
-    }
-
-    setIsLoading(true)
-    try {
-      const result = await medicalService.createProntuario(pId, currentClinica.id, data)
-      if (result.error) {
-        toast.error(result.error.message)
+      if (result.error || !result.data) {
+        toast.error(result.error?.message || 'Erro ao criar etapa')
         return null
       }
-      toast.success('Prontuário criado com sucesso!')
-      setRecords(prev => [result.data!, ...prev])
-      return result.data!
-    } catch {
-      toast.error('Erro ao criar prontuário')
-      return null
+
+      setEvolutions((current) =>
+        current.map((evolution) =>
+          evolution.id === evolucaoId
+            ? { ...evolution, stages: [...evolution.stages, result.data!] }
+            : evolution,
+        ),
+      )
+
+      toast.success('Etapa adicionada')
+      return result.data
     } finally {
       setIsLoading(false)
     }
-  }, [currentClinica?.id])
+  }, [])
 
-  const createAnexo = useCallback(async (
-    pId: string,
-    data: CreateAnexoInput
-  ): Promise<AnexoMedicoFormatted | null> => {
+  const createProntuario = useCallback(async (requestedPatientId: string, data: CreateProntuarioInput) => {
     if (!currentClinica?.id) {
-      toast.error('Clínica não selecionada')
+      toast.error('Clinica nao selecionada')
       return null
     }
 
     setIsLoading(true)
     try {
-      const result = await medicalService.createAnexo(pId, currentClinica.id, data)
-      if (result.error) {
-        toast.error(result.error.message)
+      const result = await medicalService.createProntuario(requestedPatientId, currentClinica.id, data)
+      if (result.error || !result.data) {
+        toast.error(result.error?.message || 'Erro ao criar prontuario')
         return null
       }
-      toast.success('Anexo adicionado com sucesso!')
-      setAttachments(prev => [result.data!, ...prev])
-      return result.data!
-    } catch {
-      toast.error('Erro ao adicionar anexo')
-      return null
+
+      setRecords((current) => [result.data!, ...current])
+      toast.success('Prontuario em rascunho criado')
+      return result.data
     } finally {
       setIsLoading(false)
     }
   }, [currentClinica?.id])
 
-  const deleteAnexo = useCallback(async (anexoId: string): Promise<boolean> => {
+  const signProntuario = useCallback(async (recordId: string) => {
     if (!currentClinica?.id) {
-      toast.error('Clínica não identificada')
+      toast.error('Clinica nao selecionada')
+      return {
+        data: null,
+        error: {
+          message: 'Clinica nao selecionada',
+          code: 'CLINICA_REQUIRED',
+        },
+      }
+    }
+
+    setIsLoading(true)
+    try {
+      const result = await medicalService.signProntuario(recordId, currentClinica.id)
+      if (result.error || !result.data) {
+        if (result.error?.code !== 'PENDING_GOAL_EVALUATIONS') {
+          toast.error(result.error?.message || 'Erro ao assinar prontuario')
+        }
+        return result
+      }
+
+      setRecords((current) =>
+        current.map((record) => (record.id === recordId ? result.data! : record)),
+      )
+      toast.success('Prontuario assinado com sucesso')
+      return result
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentClinica?.id])
+
+  const createErrata = useCallback(async (recordId: string, text: string) => {
+    if (!currentClinica?.id) {
+      toast.error('Clinica nao selecionada')
+      return null
+    }
+
+    setIsLoading(true)
+    try {
+      const result = await medicalService.createErrata(recordId, currentClinica.id, text)
+      if (result.error || !result.data) {
+        toast.error(result.error?.message || 'Erro ao criar errata')
+        return null
+      }
+
+      setRecords((current) =>
+        current.map((record) =>
+          record.id === recordId
+            ? { ...record, erratas: [...(record.erratas || []), result.data!] }
+            : record,
+        ),
+      )
+      toast.success('Errata registrada')
+      return result.data
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentClinica?.id])
+
+  const createAnexo = useCallback(async (requestedPatientId: string, data: CreateAnexoInput) => {
+    if (!currentClinica?.id) {
+      toast.error('Clinica nao selecionada')
+      return null
+    }
+
+    setIsLoading(true)
+    try {
+      const result = await medicalService.createAnexo(requestedPatientId, currentClinica.id, data)
+      if (result.error || !result.data) {
+        toast.error(result.error?.message || 'Erro ao enviar anexo')
+        return null
+      }
+
+      setAttachments((current) => [result.data!, ...current])
+      toast.success('Anexo enviado com sucesso')
+      return result.data
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentClinica?.id])
+
+  const deleteAnexo = useCallback(async (attachmentId: string, prontuarioId: string) => {
+    if (!currentClinica?.id) {
+      toast.error('Clinica nao selecionada')
       return false
     }
 
     setIsLoading(true)
     try {
-      const result = await medicalService.deleteAnexo(anexoId, currentClinica.id)
-      if (result.error) {
-        toast.error(result.error.message)
+      const result = await medicalService.deleteAnexo(attachmentId, currentClinica.id, prontuarioId)
+      if (result.error || !result.data) {
+        toast.error(result.error?.message || 'Erro ao remover anexo')
         return false
       }
-      toast.success('Anexo removido!')
-      setAttachments(prev => prev.filter(a => a.id !== anexoId))
+
+      setAttachments((current) => current.filter((attachment) => attachment.id !== attachmentId))
+      toast.success('Anexo removido')
       return true
-    } catch {
-      toast.error('Erro ao remover anexo')
-      return false
     } finally {
       setIsLoading(false)
     }
   }, [currentClinica?.id])
 
-  // Auto-fetch quando o patientId mudar
   useEffect(() => {
     if (autoFetch && patientId) {
       fetchMedicalData(patientId)
     }
-  }, [autoFetch, patientId, fetchMedicalData])
+  }, [autoFetch, fetchMedicalData, patientId])
 
   return {
     records,
@@ -415,11 +409,12 @@ export function useMedicalData(options: UseMedicalDataOptions = {}): UseMedicalD
     fetchAnamnese,
     fetchAnexos,
     refresh,
-    // Métodos de escrita
     saveAnamnese,
     createEvolucao,
     createEvolucaoEtapa,
     createProntuario,
+    signProntuario,
+    createErrata,
     createAnexo,
     deleteAnexo,
   }

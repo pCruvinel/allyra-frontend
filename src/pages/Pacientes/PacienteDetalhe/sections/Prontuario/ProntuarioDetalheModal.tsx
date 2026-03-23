@@ -18,12 +18,20 @@ export function ProntuarioDetalheModal({ isOpen, onClose, record }: ProntuarioDe
 
   // Formatar data para exibição
   const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleDateString('pt-BR')
-    } catch {
+    const date = new Date(dateStr)
+    if (Number.isNaN(date.getTime())) {
       return dateStr
     }
+    return date.toLocaleDateString('pt-BR')
+  }
+
+  const formatDateTime = (dateStr?: string | null) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    if (Number.isNaN(date.getTime())) {
+      return dateStr
+    }
+    return date.toLocaleString('pt-BR')
   }
 
   const content = (
@@ -109,17 +117,55 @@ export function ProntuarioDetalheModal({ isOpen, onClose, record }: ProntuarioDe
         </div>
       )}
 
+      {record.appointmentId && (
+        <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+          Sessão vinculada: <span className="font-medium text-foreground">{record.appointmentId}</span>
+        </div>
+      )}
+
       {/* Assinatura Digital */}
-      <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
-        <ShieldCheck className="w-5 h-5 text-primary" />
-        <div className="text-sm">
-          <span className="text-foreground">Assinado digitalmente por: </span>
-          <strong className="text-foreground">{record.signedBy?.name || 'Profissional'}</strong>
-          {record.signedBy?.crm && (
-            <span className="text-muted-foreground"> (CRM: {record.signedBy.crm})</span>
+      {record.isSigned ? (
+        <div className="space-y-2 rounded-lg border border-primary/10 bg-primary/5 p-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            <div className="text-sm">
+              <span className="text-foreground">Assinado digitalmente por: </span>
+              <strong className="text-foreground">{record.signedBy?.name || 'Profissional'}</strong>
+              {record.signedBy?.crm && (
+                <span className="text-muted-foreground"> (CRM: {record.signedBy.crm})</span>
+              )}
+            </div>
+          </div>
+          {record.signedAt && (
+            <p className="text-xs text-muted-foreground">
+              Assinatura registrada em {formatDateTime(record.signedAt)}
+            </p>
           )}
         </div>
-      </div>
+      ) : (
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+          Este prontuário ainda está em rascunho e pode ser editado até a assinatura clínica.
+        </div>
+      )}
+
+      {record.erratas && record.erratas.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <FileText className="w-4 h-4 text-primary" />
+            <span>Erratas registradas</span>
+          </div>
+          <div className="space-y-2">
+            {record.erratas.map((errata) => (
+              <div key={errata.id} className="rounded-lg border border-border bg-muted/30 p-3">
+                <p className="text-sm text-foreground whitespace-pre-wrap">{errata.text}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Registrada em {formatDateTime(errata.createdAt)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 

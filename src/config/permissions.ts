@@ -1,11 +1,10 @@
 /**
- * Sistema de Permissões - Allyra
+ * Sistema de Permissoes - Allyra
  *
- * Define os 8 perfis de usuário e a matriz de permissões por módulo.
+ * Define os perfis de usuario e a matriz de permissoes por modulo.
  * Baseado em docs/business/permissions.md
  */
 
-// Tipos de perfil do sistema (match com enum do banco)
 export type PerfilTipo =
   | 'admin_master'
   | 'desenvolvedor'
@@ -19,11 +18,11 @@ export type PerfilTipo =
 
 export type PermissionAction = 'create' | 'read' | 'update' | 'delete' | 'export'
 
-// Matriz de permissões completa baseada em docs/business/permissions.md
 export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionAction[]>> = {
   admin_master: {
     agenda_recepcao: ['create', 'read', 'update', 'delete', 'export'],
     pacientes: ['create', 'read', 'update', 'delete', 'export'],
+    escalas_rh: ['create', 'read', 'update', 'delete', 'export'],
     prontuario: ['create', 'read', 'update', 'delete', 'export'],
     metas_terapeuticas: ['create', 'read', 'update', 'delete', 'export'],
     financeiro: ['create', 'read', 'update', 'delete', 'export'],
@@ -36,6 +35,7 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
   desenvolvedor: {
     agenda_recepcao: ['create', 'read', 'update', 'delete', 'export'],
     pacientes: ['create', 'read', 'update', 'delete', 'export'],
+    escalas_rh: ['create', 'read', 'update', 'delete', 'export'],
     prontuario: ['create', 'read', 'update', 'delete', 'export'],
     metas_terapeuticas: ['create', 'read', 'update', 'delete', 'export'],
     financeiro: ['create', 'read', 'update', 'delete', 'export'],
@@ -48,6 +48,7 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
   administrador_total: {
     agenda_recepcao: ['create', 'read', 'update', 'delete', 'export'],
     pacientes: ['create', 'read', 'update', 'delete', 'export'],
+    escalas_rh: ['create', 'read', 'update', 'delete', 'export'],
     prontuario: ['create', 'read', 'update', 'delete', 'export'],
     metas_terapeuticas: ['create', 'read', 'update', 'delete', 'export'],
     financeiro: ['create', 'read', 'update', 'delete', 'export'],
@@ -59,17 +60,19 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
   socio_profissional: {
     agenda_recepcao: ['create', 'read', 'update'],
     pacientes: ['read'],
+    escalas_rh: ['create', 'read', 'update', 'export'],
     prontuario: ['create', 'read', 'update'],
     metas_terapeuticas: ['create', 'read', 'update'],
     financeiro: ['read'],
     faturamento: ['read'],
     relatorios: ['read', 'export'],
-    configuracoes: [], // Apenas admins podem acessar configurações
+    configuracoes: [],
     saas: [],
   },
   profissional: {
     agenda_recepcao: ['read', 'update'],
     pacientes: ['read'],
+    escalas_rh: ['read'],
     prontuario: ['create', 'read', 'update'],
     metas_terapeuticas: ['create', 'read', 'update'],
     financeiro: [],
@@ -81,6 +84,7 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
   secretaria: {
     agenda_recepcao: ['create', 'read', 'update'],
     pacientes: ['create', 'read', 'update'],
+    escalas_rh: [],
     prontuario: [],
     metas_terapeuticas: [],
     financeiro: [],
@@ -92,6 +96,7 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
   administrativo: {
     agenda_recepcao: ['read'],
     pacientes: ['read'],
+    escalas_rh: ['read', 'export'],
     prontuario: [],
     metas_terapeuticas: [],
     financeiro: ['read'],
@@ -103,6 +108,7 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
   financeiro: {
     agenda_recepcao: ['read'],
     pacientes: ['read'],
+    escalas_rh: [],
     prontuario: [],
     metas_terapeuticas: [],
     financeiro: ['create', 'read', 'update'],
@@ -114,6 +120,7 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
   faturamento: {
     agenda_recepcao: ['read'],
     pacientes: ['read'],
+    escalas_rh: [],
     prontuario: [],
     metas_terapeuticas: [],
     financeiro: ['read'],
@@ -125,7 +132,7 @@ export const PERMISSION_MATRIX: Record<PerfilTipo, Record<string, PermissionActi
 }
 
 /**
- * Verifica se um perfil tem determinada permissão em um módulo
+ * Verifica se um perfil tem determinada permissao em um modulo
  */
 export function hasPermission(
   perfil: PerfilTipo,
@@ -137,14 +144,14 @@ export function hasPermission(
 }
 
 /**
- * Verifica se um perfil pode acessar um módulo (tem pelo menos 'read')
+ * Verifica se um perfil pode acessar um modulo (tem pelo menos 'read')
  */
 export function canAccessModule(perfil: PerfilTipo, moduleSlug: string): boolean {
   return hasPermission(perfil, moduleSlug, 'read')
 }
 
 /**
- * Retorna todas as permissões de um perfil para um módulo
+ * Retorna todas as permissoes de um perfil para um modulo
  */
 export function getModulePermissions(
   perfil: PerfilTipo,

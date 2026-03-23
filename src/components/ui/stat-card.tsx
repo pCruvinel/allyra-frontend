@@ -48,13 +48,13 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'flex-1 min-w-[170px] h-[180px] bg-card border border-border rounded-xl p-4 flex flex-col justify-end gap-2 transition-colors hover:border-primary/50',
+        'flex-1 min-w-[170px] h-[148px] bg-card border border-border rounded-xl p-4 flex flex-col justify-end gap-1.5 transition-colors hover:border-primary/50',
         className
       )}
     >
       <div className="flex flex-col justify-between flex-1">
         <div className="flex items-start justify-between">
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
             {icon}
           </div>
           {trend && !isLoading && (
@@ -75,7 +75,7 @@ export function StatCard({
               <div className="text-[32px] font-semibold leading-[120%] text-primary font-display">
                 {value}
               </div>
-              <div className="text-sm leading-[140%] text-foreground">
+              <div className="text-xs leading-[140%] text-muted-foreground">
                 {label}
               </div>
               {subtitle && (

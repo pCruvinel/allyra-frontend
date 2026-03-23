@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, Menu, Bell, FilePlus, Calendar, ChevronDown, UserPlus, CalendarPlus } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { Menu, Bell, FilePlus, Calendar, ChevronDown, UserPlus, CalendarPlus } from 'lucide-react'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIsMobile } from '@/hooks/useMediaQuery'
@@ -18,6 +17,7 @@ import { ProfileDropdown } from './ProfileDropdown'
 import { UserMenuDrawer } from './UserMenuDrawer'
 import { useModal } from '@/contexts/ModalContext'
 import { cn } from '@/lib/utils'
+import { CompactBreadcrumb } from './CompactBreadcrumb'
 
 interface NavbarProps {
   title: string
@@ -69,11 +69,11 @@ export function Navbar({ title, breadcrumb = [], actionButton, onMobileMenuClick
     <>
       {/* Top Bar */}
       <header className={cn(
-        "flex items-center justify-between bg-background border-b border-muted",
-        isMobile ? "h-14 px-4" : "h-20 px-6"
+        "flex items-center justify-between bg-background border-b border-border/60",
+        isMobile ? "h-[52px] px-4" : "h-16 px-5"
       )}>
         {/* Left: Menu & Action (or Logo on mobile) */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={handleMenuClick}
             className="p-1.5 text-primary hover:bg-muted rounded-lg transition-colors"
@@ -91,10 +91,10 @@ export function Navbar({ title, breadcrumb = [], actionButton, onMobileMenuClick
           {!isMobile && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-primary rounded-full hover:bg-primary/90 transition-colors">
-                  <FilePlus size={18} />
+                <button className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-primary/90">
+                  <FilePlus size={16} />
                   <span>Cadastrar</span>
-                  <ChevronDown size={14} />
+                  <ChevronDown size={12} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48">
@@ -118,7 +118,7 @@ export function Navbar({ title, breadcrumb = [], actionButton, onMobileMenuClick
         </div>
 
         {/* Right: Notifications & User */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Notifications - Drawer em mobile, Dropdown em desktop */}
           {isMobile ? (
             <button
@@ -157,50 +157,23 @@ export function Navbar({ title, breadcrumb = [], actionButton, onMobileMenuClick
 
       {/* Breadcrumb Bar */}
       <div className={cn(
-        "flex items-center justify-between bg-background border-b border-muted",
-        isMobile ? "h-10 px-4" : "h-12 px-6"
+        "flex items-center justify-between bg-background border-b border-border/60",
+        isMobile ? "h-9 px-4" : "h-10 px-5"
       )}>
-        <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+        <div className="flex items-center gap-2 overflow-hidden md:gap-3">
           <h1 className={cn(
             "font-semibold text-foreground truncate",
-            isMobile ? "text-sm" : "text-base"
+            isMobile ? "text-sm" : "text-[15px]"
           )}>{title}</h1>
-          {/* Breadcrumb oculto em mobile */}
-          {!isMobile && breadcrumb.length > 0 && (
-            <nav className="flex items-center" aria-label="Breadcrumb">
-              {breadcrumb.map((item, index) => {
-                const isLast = index === breadcrumb.length - 1
-                const textClass = index === 0
-                  ? 'text-xs font-semibold text-foreground'
-                  : 'text-xs text-muted-foreground'
-
-                return (
-                  <div key={index} className="flex items-center">
-                    {item.href && !isLast ? (
-                      <Link
-                        to={item.href}
-                        className={cn(textClass, 'hover:text-primary transition-colors')}
-                      >
-                        {item.label}
-                      </Link>
-                    ) : (
-                      <span className={textClass}>{item.label}</span>
-                    )}
-                    {!isLast && (
-                      <ChevronRight size={16} className="mx-1 text-muted-foreground" />
-                    )}
-                  </div>
-                )
-              })}
-            </nav>
-          )}
+          {/* Breadcrumb — hidden on mobile, suppressed when only 1 item */}
+          {!isMobile && <CompactBreadcrumb items={breadcrumb} />}
         </div>
         {actionButton && (
           <button
             onClick={actionButton.onClick}
             className={cn(
               "flex items-center gap-1 font-medium text-white bg-primary rounded-full hover:bg-primary/90 transition-colors shrink-0",
-              isMobile ? "px-2.5 py-1 text-[10px]" : "px-3 py-1.5 text-xs"
+              isMobile ? "px-2.5 py-1 text-[10px]" : "px-3 py-1 text-[11px]"
             )}
           >
             <span>{actionButton.label}</span>

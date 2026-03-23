@@ -1,35 +1,41 @@
-// Tipos para Prontuário Médico
+export type EvolutionStageStatus = 'Concluido' | 'Pendente' | 'Concluído'
 
-// Status de etapa de evolução
-export type EvolutionStageStatus = 'Concluído' | 'Pendente'
-
-// Status de tratamento
 export type TreatmentStatus = 'Finalizada' | 'Em andamento' | 'Cancelada'
 
-// Assinatura digital do profissional
+export type MedicalAttachmentType = 'exame' | 'receita' | 'laudo' | 'imagem' | 'outros'
+
 export interface DigitalSignature {
   name: string
-  crm: string
-  signedAt?: string
+  crm?: string
+  signedAt?: string | null
 }
 
-// Prontuário médico
+export interface MedicalRecordErrata {
+  id: string
+  text: string
+  createdAt: string
+  createdById?: string | null
+}
+
 export interface MedicalRecord {
   id: string
   patientId: string
+  appointmentId?: string | null
   diagnosis: string
   date: string
   time: string
-  complaint: string // Queixa principal
-  diseaseHistory: string // História da doença atual
-  prescription: string // Prescrição médica
-  privateNotes?: string // Observações privadas
-  signedBy: DigitalSignature
+  complaint: string
+  diseaseHistory?: string | null
+  prescription?: string | null
+  privateNotes?: string | null
+  isSigned: boolean
+  signedAt?: string | null
+  signedBy?: DigitalSignature | null
+  erratas?: MedicalRecordErrata[]
   createdAt: string
   updatedAt?: string
 }
 
-// Etapa de evolução clínica
 export interface EvolutionStage {
   id: string
   description: string
@@ -38,7 +44,6 @@ export interface EvolutionStage {
   status: EvolutionStageStatus
 }
 
-// Evolução clínica
 export interface ClinicalEvolution {
   id: string
   patientId: string
@@ -48,48 +53,45 @@ export interface ClinicalEvolution {
   updatedAt?: string
 }
 
-// Histórico de atendimento/tratamento
 export interface TreatmentHistory {
   id: string
   patientId: string
   treatment: string
-  complaint: string
-  diagnosis: string
+  complaint?: string | null
+  diagnosis?: string | null
   date: string
   status: TreatmentStatus
 }
 
-// Anamnese
 export interface Anamnesis {
   id: string
   patientId: string
   hasHereditaryDisease: boolean
-  hereditaryDiseaseDetails?: string
+  hereditaryDiseaseDetails?: string | null
   usesMedication: boolean
-  medicationDetails?: string
-  allergies?: string
-  surgeries?: string
-  familyHistory?: string
+  medicationDetails?: string | null
+  allergies?: string | null
+  surgeries?: string | null
+  familyHistory?: string | null
   createdAt: string
   updatedAt?: string
 }
 
-// Anexo de prontuário
 export interface MedicalAttachment {
   id: string
   patientId: string
+  prontuarioId?: string | null
   name: string
-  code: string
+  code?: string | null
   uploadedAt: string
   url: string
-  type: 'exame' | 'receita' | 'laudo' | 'outros'
+  type: MedicalAttachmentType
 }
 
-// Dados completos do prontuário do paciente
 export interface PatientMedicalData {
   records: MedicalRecord[]
   evolutions: ClinicalEvolution[]
   treatmentHistory: TreatmentHistory[]
-  anamnesis?: Anamnesis
+  anamnesis: Anamnesis | null
   attachments: MedicalAttachment[]
 }

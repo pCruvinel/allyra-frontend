@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Eye, Download, X, MessageCircle } from 'lucide-react'
+import { Eye, Download, X, MessageCircle } from 'lucide-react'
 import { DataTable, SimpleDropdownMenu, FloatingButton } from '@/components/ui'
 import { ChatPanel } from '@/components/chat'
 import { useNotasFiscais } from '@/hooks'
@@ -100,7 +99,6 @@ const tableColumns: Column<NFTableRow>[] = [
 ]
 
 export function NFsEmitidasPage() {
-  const navigate = useNavigate()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
     dateFrom: '',
@@ -184,9 +182,7 @@ export function NFsEmitidasPage() {
     setFilters(newFilters)
   }
 
-  const handleGoBack = () => {
-    navigate({ to: '/financeiro' })
-  }
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true)
@@ -205,22 +201,6 @@ export function NFsEmitidasPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>NFs Emitidas</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Início</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Financeiro</span>
-          <span className="text-muted-foreground">›</span>
-          <span className="text-foreground">NFs Emitidas</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Cards de Resumo */}

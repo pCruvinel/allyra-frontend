@@ -235,6 +235,7 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
             professionalName: a.profissional?.usuario?.nome_completo || 'Profissional',
             serviceName: a.servico?.nome || 'Serviço',
             insuranceName: a.convenio?.nome || 'Particular',
+            serieRecorrenciaId: a.serie_recorrencia_id || null,
           }
         })
         setLocalAppointments(mappedAppointments)
@@ -406,7 +407,10 @@ export function useAppointments(options: UseAppointmentsOptions = {}): UseAppoin
     ))
 
     try {
-      const result = await apiService.checkInAppointment(id)
+      const result = await apiService.checkInAppointment(id, {
+        metodo_checkin: 'manual',
+        justificativa_manual: 'Chegada registrada via ação rápida',
+      })
 
       if (result.error || !result.data) {
         setLocalAppointments(previousState)

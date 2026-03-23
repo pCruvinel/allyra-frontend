@@ -1,0 +1,1 @@
+export { EscalasPage } from './EscalasPage'

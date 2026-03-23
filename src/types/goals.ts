@@ -23,6 +23,8 @@ export interface TherapeuticPlan {
   data_fim_prevista?: string // Kept for backwards compatibility
   status: PlanStatus
   observacoes?: string
+  parecer_tecnico?: string
+  recomendacoes?: string
   created_at?: string
   updated_at?: string
   // Relacionamentos
@@ -54,6 +56,8 @@ export interface CreatePlanInput {
 
 export interface UpdatePlanInput extends Partial<CreatePlanInput> {
   status?: PlanStatus
+  parecer_tecnico?: string
+  recomendacoes?: string
 }
 
 // =====================================================

@@ -3,17 +3,17 @@
  * Exibe metas do paciente e permite registrar progresso por tipo de input
  */
 
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCheck,
   CheckCircle2,
   Circle,
   MinusCircle,
-  AlertCircle,
-  ArrowLeft,
-  Users,
-  Target,
   Save,
-  CheckCheck,
+  Target,
+  Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -28,7 +28,7 @@ import { useGoals } from '@/hooks/useGoals'
 import { useTherapeuticPlans } from '@/hooks/useTherapeuticPlans'
 import { goalsService } from '@/services/goals.service'
 import { toast } from 'sonner'
-import type { TherapeuticGoal, ProgressStatus } from '@/types/goals'
+import type { ProgressStatus, TherapeuticGoal } from '@/types/goals'
 
 type ViewMode = 'grid' | 'list'
 type GoalStatus = 'pending' | 'achieved' | 'partial' | 'not-achieved'
@@ -45,12 +45,30 @@ interface SavedGoalSnapshot {
 
 interface GoalsExecutionWidgetProps {
   searchQuery?: string
+  patientId?: string
+  appointmentId?: string
+  recordId?: string
+  embedded?: boolean
+  hidePatientSelector?: boolean
+  title?: string
+  description?: string
+  onFinish?: () => void
 }
 
-export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetProps) {
+export function GoalsExecutionWidget({
+  searchQuery = '',
+  patientId,
+  appointmentId,
+  recordId,
+  embedded = false,
+  hidePatientSelector = false,
+  title,
+  description,
+  onFinish,
+}: GoalsExecutionWidgetProps) {
   const { currentClinica, user } = useAuth()
   const { patients, isLoading: patientsLoading } = usePatients()
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(patientId ?? null)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [goalValues, setGoalValues] = useState<GoalValue[]>([])
   const [observacoes, setObservacoes] = useState('')
@@ -59,46 +77,48 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
   const [savedGoalSnapshots, setSavedGoalSnapshots] = useState<Record<string, SavedGoalSnapshot>>({})
 
   const attendanceDate = new Date().toLocaleDateString('pt-BR')
+  const effectivePatientId = patientId ?? selectedPatientId
 
-  // Busca planos do paciente selecionado
+  useEffect(() => {
+    if (patientId) {
+      setSelectedPatientId(patientId)
+    }
+  }, [patientId])
+
   const { plans, isLoading: plansLoading } = useTherapeuticPlans({
-    autoFetch: !!selectedPatientId,
-    pacienteId: selectedPatientId || undefined,
+    autoFetch: !!effectivePatientId,
+    pacienteId: effectivePatientId || undefined,
   })
 
-  // Plano ativo (primeiro plano ativo encontrado)
   const activePlan = useMemo(() => {
-    return plans.find(p => p.status === 'ativo')
+    return plans.find((plan) => plan.status === 'ativo')
   }, [plans])
 
-  // Busca metas do plano ativo
   const { goals, isLoading: goalsLoading } = useGoals({
     autoFetch: !!activePlan?.id,
     planoId: activePlan?.id,
   })
 
-  const currentPatient = patients.find(p => p.id === selectedPatientId)
-  const activePatients = patients.filter(p => p.status !== 'inactive')
+  const currentPatient = patients.find((patient) => patient.id === effectivePatientId)
+  const activePatients = patients.filter((patient) => patient.status !== 'inactive')
 
-  // Filtrar pacientes pela busca
   const filteredPatients = useMemo(() => {
     if (!searchQuery.trim()) return activePatients
     const query = searchQuery.toLowerCase()
-    return activePatients.filter((p) => p.name.toLowerCase().includes(query))
+    return activePatients.filter((patient) => patient.name.toLowerCase().includes(query))
   }, [activePatients, searchQuery])
 
-  // Helpers
   const getGoalValue = (goalId: string): string => {
-    return goalValues.find(g => g.goalId === goalId)?.value || ''
+    return goalValues.find((goal) => goal.goalId === goalId)?.value || ''
   }
 
   const updateGoalValue = (goalId: string, value: string) => {
-    setGoalValues(prev => {
-      const existing = prev.find(g => g.goalId === goalId)
+    setGoalValues((previous) => {
+      const existing = previous.find((goal) => goal.goalId === goalId)
       if (existing) {
-        return prev.map(g => g.goalId === goalId ? { ...g, value } : g)
+        return previous.map((goal) => (goal.goalId === goalId ? { ...goal, value } : goal))
       }
-      return [...prev, { goalId, value }]
+      return [...previous, { goalId, value }]
     })
   }
 
@@ -129,7 +149,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
     return 'pending'
   }
 
-  const filledGoals = goals.filter(g => getGoalValue(g.id)).length
+  const filledGoals = goals.filter((goal) => getGoalValue(goal.id)).length
   const totalGoals = goals.length
   const completionPercentage = totalGoals > 0 ? Math.round((filledGoals / totalGoals) * 100) : 0
   const normalizedObservacoes = observacoes.trim()
@@ -142,7 +162,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           value: goalValue.value.trim(),
         }))
         .filter((goalValue) => goalValue.value !== ''),
-    [goalValues]
+    [goalValues],
   )
 
   const hasUnsavedFilledEntries = filledGoalEntries.some(({ goalId, value }) => {
@@ -160,11 +180,27 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
     hasDivergedFromSavedEntries ||
     (normalizedObservacoes !== '' && filledGoalEntries.length === 0)
 
-  const resetAttendance = () => {
-    setSelectedPatientId(null)
+  const clearExecutionState = () => {
     setGoalValues([])
     setObservacoes('')
     setSavedGoalSnapshots({})
+  }
+
+  const resetAttendance = ({ keepPatientContext = false }: { keepPatientContext?: boolean } = {}) => {
+    if (!keepPatientContext && !patientId) {
+      setSelectedPatientId(null)
+    }
+    clearExecutionState()
+  }
+
+  const finalizeAttendance = () => {
+    if (embedded) {
+      resetAttendance({ keepPatientContext: true })
+      onFinish?.()
+      return
+    }
+
+    resetAttendance()
   }
 
   const mapGoalStatusToProgressStatus = (status: GoalStatus): ProgressStatus => {
@@ -226,7 +262,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
       }
 
       toast.success('Atendimento finalizado com sucesso!')
-      resetAttendance()
+      finalizeAttendance()
       return true
     }
 
@@ -240,6 +276,8 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
             profissional_id: user.id,
             data_registro: new Date().toISOString(),
             valor_registrado: value,
+            prontuario_id: recordId,
+            agendamento_id: appointmentId,
             status_classificacao: status,
             observacoes_subjetivas: normalizedObservacoes || undefined,
           })
@@ -249,7 +287,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           }
 
           return { goalId: goal.id, value }
-        })
+        }),
       )
 
       const successfulEntries: Array<{ goalId: string; value: string }> = []
@@ -284,7 +322,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           toast.error(failedMessages[0] || 'Erro ao salvar atendimento')
         } else {
           toast.error(
-            `Salvamento parcial: ${successfulEntries.length} de ${pendingEntries.length} metas foram registradas.`
+            `Salvamento parcial: ${successfulEntries.length} de ${pendingEntries.length} metas foram registradas.`,
           )
         }
 
@@ -294,7 +332,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
       toast.success(mode === 'draft' ? 'Rascunho salvo!' : 'Atendimento finalizado com sucesso!')
 
       if (mode === 'finish') {
-        resetAttendance()
+        finalizeAttendance()
       }
 
       return true
@@ -311,7 +349,13 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
     await persistProgressEntries('finish')
   }
 
-  // Loading state
+  const resolvedTitle = title || (embedded ? 'Metas terapêuticas' : 'Atendimento')
+  const resolvedDescription =
+    description ||
+    (embedded
+      ? 'Registre o progresso clínico deste atendimento.'
+      : 'Selecione um paciente para iniciar o registro')
+
   if (patientsLoading) {
     return (
       <div className="space-y-6">
@@ -320,28 +364,36 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <Skeleton key={i} className="h-40 rounded-xl" />
+          {[1, 2, 3, 4, 5, 6].map((item) => (
+            <Skeleton key={item} className="h-40 rounded-xl" />
           ))}
         </div>
       </div>
     )
   }
 
-  // View: Lista de Pacientes (quando nenhum selecionado)
-  if (!selectedPatientId) {
+  if (!effectivePatientId && (embedded || hidePatientSelector)) {
+    return (
+      <EmptyState
+        icon={Target}
+        title="Contexto clínico não informado"
+        description="Selecione o paciente ou vincule um agendamento para liberar a execução integrada de metas."
+      />
+    )
+  }
+
+  if (!effectivePatientId) {
     return (
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Target className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Atendimento</h2>
+              <h2 className="text-lg font-semibold text-foreground">{resolvedTitle}</h2>
               <p className="text-sm text-muted-foreground">
-                Selecione um paciente para iniciar o registro
+                {resolvedDescription}
               </p>
             </div>
           </div>
@@ -362,7 +414,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           </div>
         </div>
 
-        {/* Pacientes */}
         {filteredPatients.length === 0 ? (
           <EmptyState
             icon={Users}
@@ -375,7 +426,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           />
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPatients.map(patient => (
+            {filteredPatients.map((patient) => (
               <button
                 key={patient.id}
                 onClick={() => setSelectedPatientId(patient.id)}
@@ -390,7 +441,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
                   </span>
                 </div>
 
-                {/* Info adicional */}
                 <div className="space-y-1 text-sm mt-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Metas ativas:</span>
@@ -427,7 +477,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
                 </tr>
               </thead>
               <tbody>
-                {filteredPatients.map(patient => (
+                {filteredPatients.map((patient) => (
                   <tr key={patient.id} className="border-b border-border last:border-b-0 hover:bg-muted/30">
                     <td className="px-5 py-4 font-semibold text-foreground">
                       {patient.name}
@@ -455,33 +505,35 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
     )
   }
 
-  // View: Formulário de Atendimento
   return (
     <div className="space-y-6">
-      {/* Back Button */}
-      <button
-        onClick={() => {
-          if (isDirty) {
-            setShowDiscardModal(true)
-            return
-          }
+      {!embedded && (
+        <button
+          onClick={() => {
+            if (isDirty) {
+              setShowDiscardModal(true)
+              return
+            }
 
-          resetAttendance()
-        }}
-        className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-      >
-        <ArrowLeft size={18} />
-        <span className="text-sm font-medium">Voltar para pacientes</span>
-      </button>
+            resetAttendance()
+          }}
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+        >
+          <ArrowLeft size={18} />
+          <span className="text-sm font-medium">Voltar para pacientes</span>
+        </button>
+      )}
 
-      {/* Header */}
       <div className="flex items-center justify-between p-5 rounded-xl bg-card border border-border">
         <div>
           <h2 className="text-xl font-bold text-foreground mb-1">
-            Atendimento em Andamento
+            {resolvedTitle}
           </h2>
           <p className="text-sm text-muted-foreground">
             {currentPatient?.name} - {attendanceDate}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {resolvedDescription}
           </p>
         </div>
 
@@ -493,7 +545,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
         </div>
       </div>
 
-      {/* Warning if incomplete */}
       {filledGoals < totalGoals && totalGoals > 0 && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30">
           <AlertCircle size={18} className="text-amber-600 dark:text-amber-400" />
@@ -503,7 +554,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
         </div>
       )}
 
-      {/* Goals List */}
       {plansLoading || goalsLoading ? (
         <Skeleton className="h-64 rounded-xl" />
       ) : !activePlan ? (
@@ -523,7 +573,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
           <h3 className="font-semibold text-foreground mb-5">Registro de Metas</h3>
 
           <div className="space-y-6">
-            {goals.map(goal => {
+            {goals.map((goal) => {
               const status = getCompletionStatus(goal)
               const tipoInput = goal.tipo_input || 'numerico'
               const value = getGoalValue(goal.id)
@@ -531,7 +581,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
               return (
                 <div key={goal.id} className="border-b border-border pb-6 last:border-b-0 last:pb-0">
                   <div className="flex items-start gap-4">
-                    {/* Status Indicator */}
                     <div className="pt-1">
                       {status === 'pending' && <Circle size={20} className="text-muted-foreground" />}
                       {status === 'achieved' && <CheckCircle2 size={20} className="text-primary" />}
@@ -540,7 +589,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
                     </div>
 
                     <div className="flex-1">
-                      {/* Goal Info */}
                       <div className="mb-3">
                         <h4 className="font-semibold text-foreground mb-1">
                           {goal.titulo || goal.descricao}
@@ -553,7 +601,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
                         </div>
                       </div>
 
-                      {/* Input por tipo */}
                       <div className="max-w-md">
                         {tipoInput === 'numerico' && (
                           <div>
@@ -563,7 +610,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
                             <Input
                               type="number"
                               value={value}
-                              onChange={(e) => updateGoalValue(goal.id, e.target.value)}
+                              onChange={(event) => updateGoalValue(goal.id, event.target.value)}
                               placeholder={`Meta: ${goal.meta_esperada}`}
                             />
                           </div>
@@ -601,15 +648,15 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
                               Nível (1 = Total, 5 = Independente)
                             </label>
                             <div className="flex gap-2">
-                              {[1, 2, 3, 4, 5].map(n => (
+                              {[1, 2, 3, 4, 5].map((level) => (
                                 <Button
-                                  key={n}
+                                  key={level}
                                   type="button"
-                                  variant={value === String(n) ? 'default' : 'outline'}
-                                  onClick={() => updateGoalValue(goal.id, String(n))}
+                                  variant={value === String(level) ? 'default' : 'outline'}
+                                  onClick={() => updateGoalValue(goal.id, String(level))}
                                   className="flex-1 h-12 text-lg font-bold"
                                 >
-                                  {n}
+                                  {level}
                                 </Button>
                               ))}
                             </div>
@@ -623,7 +670,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
             })}
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3 mt-6 pt-6 border-t border-border">
             <Button
               variant="outline"
@@ -646,7 +692,6 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
         </div>
       )}
 
-      {/* Observações */}
       <div className="rounded-xl border border-border bg-card p-6">
         <h3 className="font-semibold text-foreground mb-2">Observações do Atendimento</h3>
         <p className="text-sm text-muted-foreground mb-4">
@@ -654,7 +699,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
         </p>
         <Textarea
           value={observacoes}
-          onChange={(e) => setObservacoes(e.target.value)}
+          onChange={(event) => setObservacoes(event.target.value)}
           placeholder="Ex: O paciente demonstrou boa participação..."
           rows={4}
         />
@@ -663,7 +708,7 @@ export function GoalsExecutionWidget({ searchQuery = '' }: GoalsExecutionWidgetP
       <ConfirmationModal
         isOpen={showDiscardModal}
         onClose={() => setShowDiscardModal(false)}
-        onConfirm={resetAttendance}
+        onConfirm={() => resetAttendance()}
         title="Descartar alterações?"
         heading="Você tem dados não salvos"
         description="Ao voltar para a lista de pacientes, as alterações deste atendimento serão descartadas."

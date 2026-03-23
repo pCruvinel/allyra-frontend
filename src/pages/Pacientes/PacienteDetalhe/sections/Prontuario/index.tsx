@@ -67,7 +67,11 @@ export function ProntuarioSection({ medicalData, patientId }: ProntuarioSectionP
       </TabsContent>
 
       <TabsContent value="anexos" className="p-4 md:p-6">
-        <AnexosTab attachments={medicalData.attachments} patientId={patientId} />
+        <AnexosTab
+          attachments={medicalData.attachments}
+          records={medicalData.records}
+          patientId={patientId}
+        />
       </TabsContent>
     </Tabs>
   )

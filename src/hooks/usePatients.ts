@@ -10,9 +10,11 @@
 import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import { apiService } from '@/services/api.service'
+import { medicalService } from '@/services/medical.service'
 import type { PatientListItem, PatientFull, PatientStatus } from '@/types/patient'
 import { useAuth } from '@/contexts/AuthContext'
 import { useData } from '@/contexts/DataContext'
+import { useModulePermission } from './useModuleAccess'
 
 // Tipos para input (aceita ambos formatos: snake_case da API e camelCase do frontend)
 export type CreatePatientInput = {
@@ -366,6 +368,7 @@ export function usePatients(options: UsePatientsOptions = {}): UsePatientsReturn
  */
 export function usePatientDetails(patientId: string | undefined) {
   const { currentClinica } = useAuth()
+  const { canAccess: canAccessProntuario } = useModulePermission('prontuario')
   const [patient, setPatient] = useState<PatientFull | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -388,6 +391,20 @@ export function usePatientDetails(patientId: string | undefined) {
         const p = result.data as any
         const primaryInsurance = p.pacientes_convenios?.[0]
         const primaryResponsible = p.responsaveis_pacientes?.[0]
+        const familyResponsible = p.responsavel_familiar ? {
+          cpf: p.responsavel_familiar.cpf || '',
+          name: p.responsavel_familiar.name || p.responsavel_familiar.nome || '',
+          relationship: p.responsavel_familiar.relationship || p.responsavel_familiar.parentesco || '',
+        } : primaryResponsible ? {
+          cpf: primaryResponsible.cpf || '',
+          name: primaryResponsible.nome_completo || '',
+          relationship: primaryResponsible.parentesco || '',
+        } : undefined
+        const financialResponsible = p.responsavel_financeiro ? {
+          cpf: p.responsavel_financeiro.cpf || '',
+          name: p.responsavel_financeiro.name || p.responsavel_financeiro.nome || '',
+          relationship: p.responsavel_financeiro.relationship || p.responsavel_financeiro.parentesco || '',
+        } : undefined
 
         const mapped: PatientFull = {
           personal: {
@@ -402,20 +419,17 @@ export function usePatientDetails(patientId: string | undefined) {
           contact: {
             email: p.email || '',
             phone: p.telefone || '',
-            familyResponsible: primaryResponsible ? {
-              cpf: primaryResponsible.cpf || '',
-              name: primaryResponsible.nome_completo || '',
-              relationship: primaryResponsible.parentesco || '',
-            } : undefined,
+            familyResponsible,
+            financialResponsible,
           },
           address: {
-            street: p.endereco?.logradouro || '',
+            street: p.endereco?.logradouro || p.endereco_completo || '',
             number: p.endereco?.numero || '',
-            complement: p.endereco?.complemento,
-            neighborhood: p.endereco?.bairro || '',
-            city: p.endereco?.cidade || '',
-            state: p.endereco?.estado || '',
-            zipCode: p.endereco?.cep || '',
+            complement: p.endereco?.complemento || undefined,
+            neighborhood: p.endereco?.bairro || p.bairro || '',
+            city: p.endereco?.cidade || p.cidade || '',
+            state: p.endereco?.estado || p.estado || '',
+            zipCode: p.endereco?.cep || p.cep || '',
           },
           insurance: {
             insuranceName: primaryInsurance?.convenio?.nome || 'Particular',
@@ -430,6 +444,13 @@ export function usePatientDetails(patientId: string | undefined) {
             contract: false,
           },
           status: (p.status as PatientStatus) || 'active',
+        }
+
+        if (canAccessProntuario) {
+          const medicalResult = await medicalService.getPatientMedicalData(patientId, currentClinica.id)
+          if (medicalResult.data) {
+            mapped.medical = medicalResult.data
+          }
         }
 
         setPatient(mapped)
@@ -448,7 +469,7 @@ export function usePatientDetails(patientId: string | undefined) {
     } finally {
       setIsLoading(false)
     }
-  }, [patientId, currentClinica?.id])
+  }, [canAccessProntuario, currentClinica?.id, patientId])
 
   useEffect(() => {
     fetchPatient()

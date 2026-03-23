@@ -14,12 +14,14 @@ import {
   UserCog,
   History,
   Target,
+  ClipboardList,
   Sun,
   Moon,
   X,
   Code2,
   ChevronDown,
   Check,
+  HeartPulse,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -32,6 +34,7 @@ import { useMemo, useState } from 'react'
 const moduleIcons: Record<string, LucideIcon> = {
   agenda_recepcao: Calendar,
   pacientes: Users,
+  escalas_rh: ClipboardList,
   metas_terapeuticas: Target,
   financeiro: DollarSign,
   faturamento: Receipt,
@@ -46,10 +49,11 @@ const moduleOrder: Record<string, number> = {
   home: 0,
   agenda_recepcao: 1,
   pacientes: 2,
-  relatorios: 3,
-  faturamento: 4,
-  financeiro: 5,
-  metas_terapeuticas: 6,
+  escalas_rh: 3,
+  relatorios: 4,
+  faturamento: 5,
+  financeiro: 6,
+  metas_terapeuticas: 7,
   saas: 90,
   usuarios: 91,
   auditoria: 92,
@@ -253,6 +257,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             <ul className="space-y-1">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.href
+                const isParentActive = item.slug === 'pacientes' && location.pathname.startsWith('/pacientes')
                 const Icon = item.icon
                 return (
                   <li key={item.href}>
@@ -260,15 +265,31 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                       to={item.href}
                       onClick={handleNavClick}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
-                        isActive
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors",
+                        (isActive || isParentActive)
                           ? "bg-primary/10 text-primary"
                           : "text-foreground hover:bg-muted"
                       )}
                     >
-                      <Icon size={22} className={isActive ? "text-primary" : "text-primary"} />
+                      <Icon size={20} className={(isActive || isParentActive) ? "text-primary" : "text-primary"} />
                       <span>{item.label}</span>
                     </Link>
+                    {/* Submenu: Engajamento under Pacientes */}
+                    {item.slug === 'pacientes' && (
+                      <Link
+                        to="/pacientes/engajamento"
+                        onClick={handleNavClick}
+                        className={cn(
+                          "flex items-center gap-3 ml-6 px-3 py-2 rounded-lg text-[12px] font-medium transition-colors mt-0.5",
+                          location.pathname === '/pacientes/engajamento'
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                      >
+                        <HeartPulse size={16} className="flex-shrink-0" />
+                        <span>Engajamento</span>
+                      </Link>
+                    )}
                   </li>
                 )
               })}
@@ -288,12 +309,12 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
           <div className="p-3 space-y-1 border-t border-muted">
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium hover:bg-muted transition-colors text-foreground"
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[13px] font-medium hover:bg-muted transition-colors text-foreground"
             >
               {isDark ? (
-                <Sun size={22} className="text-primary" />
+                <Sun size={20} className="text-primary" />
               ) : (
-                <Moon size={22} className="text-primary" />
+                <Moon size={20} className="text-primary" />
               )}
               <span>{isDark ? "Modo claro" : "Modo escuro"}</span>
             </button>
@@ -303,9 +324,9 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
                 logout()
                 onOpenChange(false)
               }}
-              className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium hover:bg-muted transition-colors text-foreground"
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-[13px] font-medium hover:bg-muted transition-colors text-foreground"
             >
-              <LogOut size={22} className="text-primary" />
+              <LogOut size={20} className="text-primary" />
               <span>Sair</span>
             </button>
           </div>

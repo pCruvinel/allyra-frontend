@@ -12,9 +12,12 @@ import {
   UserCog,
   History,
   Target,
+  ClipboardList,
   Sun,
   Moon,
   Code2,
+  HeartPulse,
+  ChevronDown,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -24,13 +27,14 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useModuleAccess } from '@/hooks/useModuleAccess'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useIsMobile, useIsTablet } from '@/hooks/useMediaQuery'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ClinicSelector } from './ClinicSelector'
 
 // Mapeamento de ícones por slug do módulo
 const moduleIcons: Record<string, LucideIcon> = {
   agenda_recepcao: Calendar,
   pacientes: Users,
+  escalas_rh: ClipboardList,
   metas_terapeuticas: Target,
   financeiro: DollarSign,
   faturamento: Receipt,
@@ -45,10 +49,11 @@ const moduleOrder: Record<string, number> = {
   home: 0,
   agenda_recepcao: 1,
   pacientes: 2,
-  relatorios: 3,
-  faturamento: 4,
-  financeiro: 5,
-  metas_terapeuticas: 6,
+  escalas_rh: 3,
+  relatorios: 4,
+  faturamento: 5,
+  financeiro: 6,
+  metas_terapeuticas: 7,
   saas: 90,
   usuarios: 91,
   auditoria: 92,
@@ -83,6 +88,10 @@ export function Sidebar() {
   const { logout, user } = useAuth()
   const { visibleModules, currentPerfil, canAccess } = useModuleAccess()
   const { toggleTheme, isDark } = useTheme()
+
+  // Submenu Pacientes: auto-expand when on a pacientes sub-route
+  const isPacientesRoute = location.pathname.startsWith('/pacientes')
+  const [isPacientesOpen, setIsPacientesOpen] = useState(isPacientesRoute)
 
   // Debug: log perfil do usuário
   logger.debug('Sidebar', 'Debug:', {
@@ -179,18 +188,18 @@ export function Sidebar() {
     <aside
       className={cn(
         "fixed top-0 left-0 flex flex-col h-screen bg-background border-r border-muted transition-all duration-300 z-30",
-        effectiveCollapsed ? "w-20" : "w-[244px]"
+        effectiveCollapsed ? "w-20" : "w-[220px]"
       )}
     >
       {/* Logo */}
       <div className={cn(
-        "flex items-center h-20 border-b border-muted",
-        effectiveCollapsed ? "justify-center px-2" : "px-8"
+        "flex items-center h-16 border-b border-muted",
+        effectiveCollapsed ? "justify-center px-2" : "px-6"
       )}>
         {effectiveCollapsed ? (
-          <span className="text-2xl font-bold text-primary">A</span>
+          <span className="text-xl font-bold text-primary">A</span>
         ) : (
-          <span className="text-2xl font-semibold tracking-tight text-primary">Allyra</span>
+          <span className="text-xl font-semibold tracking-tight text-primary">Allyra</span>
         )}
       </div>
 
@@ -202,9 +211,10 @@ export function Sidebar() {
         "flex-1 pt-4 pb-8 overflow-y-auto",
         effectiveCollapsed ? "px-2" : "px-4"
       )}>
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href
+            const isParentActive = item.slug === 'pacientes' && location.pathname.startsWith('/pacientes')
             const Icon = item.icon
             return (
               <li key={item.href}>
@@ -212,21 +222,63 @@ export function Sidebar() {
                   to={item.href}
                   title={effectiveCollapsed ? item.label : undefined}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors",
                     effectiveCollapsed && "justify-center",
-                    isActive
+                    (isActive || isParentActive)
                       ? "bg-primary/10 text-primary"
                       : "text-foreground hover:bg-muted"
                   )}
                 >
                   <span className={cn(
                     "flex-shrink-0",
-                    isActive ? "text-primary" : "text-primary"
+                    (isActive || isParentActive) ? "text-primary" : "text-primary"
                   )}>
-                    <Icon size={24} />
+                    <Icon size={20} />
                   </span>
                   {!effectiveCollapsed && <span>{item.label}</span>}
+                  {/* Chevron toggle for Pacientes submenu */}
+                  {item.slug === 'pacientes' && !effectiveCollapsed && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setIsPacientesOpen((prev) => !prev)
+                      }}
+                      className="ml-auto p-0.5 rounded hover:bg-muted/50 transition-colors"
+                    >
+                      <ChevronDown
+                        size={14}
+                        className={cn(
+                          'transition-transform duration-200',
+                          isPacientesOpen ? 'rotate-180' : 'rotate-0'
+                        )}
+                      />
+                    </button>
+                  )}
                 </Link>
+                {/* Submenu: Engajamento under Pacientes */}
+                {item.slug === 'pacientes' && !effectiveCollapsed && (
+                  <div
+                    className={cn(
+                      'overflow-hidden transition-all duration-200 ease-in-out',
+                      isPacientesOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+                    )}
+                  >
+                    <Link
+                      to="/pacientes/engajamento"
+                      className={cn(
+                        "flex items-center gap-3 ml-6 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors mt-0.5",
+                        location.pathname === '/pacientes/engajamento'
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      <HeartPulse size={16} className="flex-shrink-0" />
+                      <span>Engajamento</span>
+                    </Link>
+                  </div>
+                )}
               </li>
             )
           })}
@@ -252,14 +304,14 @@ export function Sidebar() {
           onClick={toggleTheme}
           title={effectiveCollapsed ? (isDark ? "Modo claro" : "Modo escuro") : undefined}
           className={cn(
-            "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors text-foreground",
+            "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] font-medium hover:bg-muted transition-colors text-foreground",
             effectiveCollapsed && "justify-center"
           )}
         >
           {isDark ? (
-            <Sun size={24} className="text-primary flex-shrink-0" />
+            <Sun size={20} className="text-primary flex-shrink-0" />
           ) : (
-            <Moon size={24} className="text-primary flex-shrink-0" />
+            <Moon size={20} className="text-primary flex-shrink-0" />
           )}
           {!effectiveCollapsed && <span>{isDark ? "Modo claro" : "Modo escuro"}</span>}
         </button>
@@ -274,11 +326,11 @@ export function Sidebar() {
           type="button"
           title={effectiveCollapsed ? "Sair" : undefined}
           className={cn(
-            "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors text-foreground",
+            "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-[13px] font-medium hover:bg-muted transition-colors text-foreground",
             effectiveCollapsed && "justify-center"
           )}
         >
-          <LogOut size={24} className="text-primary flex-shrink-0" />
+          <LogOut size={20} className="text-primary flex-shrink-0" />
           {!effectiveCollapsed && <span>Sair</span>}
         </button>
       </div>

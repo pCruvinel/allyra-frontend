@@ -6,7 +6,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import {
-  ArrowLeft,
   CheckCircle,
   Calendar,
   Trash2,
@@ -105,18 +104,6 @@ export function OrcamentoDetalhePage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>Orçamentos</span>
-          <span className="text-muted-foreground">›</span>
-          <span className="text-foreground">{orcamento.numero}</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Card Principal */}

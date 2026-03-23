@@ -20,6 +20,7 @@ import type {
   PortalValidationResult,
   PortalData,
 } from '@/types/goals'
+import type { PendingGoalEvaluation } from '@/types/clinical-intelligence'
 
 // =====================================================
 // HELPERS
@@ -28,8 +29,8 @@ import type {
 /**
  * Cria um ServiceError a partir de uma mensagem
  */
-function createError(message: string): ServiceError {
-  return { message }
+function createError(message: string, code?: string, details?: unknown): ServiceError {
+  return { message, code, details }
 }
 
 // =====================================================
@@ -308,6 +309,44 @@ class GoalsService {
       return {
         data: null,
         error: createError(err instanceof Error ? err.message : 'Erro ao buscar histórico'),
+      }
+    }
+  }
+
+  /**
+   * Lista pendÃªncias de avaliaÃ§Ã£o de metas em modo integrado
+   */
+  async getPendingEvaluations(
+    clinicaId: string,
+    filters?: {
+      pacienteId?: string
+      prontuarioId?: string
+      agendamentoId?: string
+    }
+  ): Promise<ServiceResponse<PendingGoalEvaluation[]>> {
+    try {
+      const params = new URLSearchParams({ clinica_id: clinicaId })
+      if (filters?.pacienteId) {
+        params.set('paciente_id', filters.pacienteId)
+      }
+      if (filters?.prontuarioId) {
+        params.set('prontuario_id', filters.prontuarioId)
+      }
+      if (filters?.agendamentoId) {
+        params.set('agendamento_id', filters.agendamentoId)
+      }
+
+      const response = await apiService.get<{ data: PendingGoalEvaluation[] }>(
+        `/api/goals/pending-evaluations?${params.toString()}`
+      )
+
+      return { data: response.data || [], error: null }
+    } catch (err) {
+      return {
+        data: null,
+        error: createError(
+          err instanceof Error ? err.message : 'Erro ao buscar pendÃªncias de metas',
+        ),
       }
     }
   }

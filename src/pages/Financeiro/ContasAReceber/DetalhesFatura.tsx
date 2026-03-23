@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowLeft, Printer, MessageCircle, Loader2 } from 'lucide-react'
+import { useParams } from '@tanstack/react-router'
+import { Printer, MessageCircle, Loader2 } from 'lucide-react'
 import { Button, FloatingButton } from '@/components/ui'
 import { Pagination } from '@/components/ui/pagination'
 import { ChatPanel } from '@/components/chat'
@@ -25,7 +25,6 @@ const statusLabels: Record<ContaReceberStatusDB, string> = {
 }
 
 export function DetalhesFaturaPage() {
-  const navigate = useNavigate()
   const { faturaId } = useParams({ from: '/financeiro/contas-a-receber/$faturaId' })
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -66,9 +65,7 @@ export function DetalhesFaturaPage() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedContas = patientContas.slice(startIndex, startIndex + itemsPerPage)
 
-  const handleGoBack = () => {
-    navigate({ to: '/financeiro/contas-a-receber' })
-  }
+
 
   const handlePrint = () => {
     console.log('Imprimir fatura')
@@ -103,24 +100,6 @@ export function DetalhesFaturaPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>Detalhes da fatura</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Início</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Financeiro</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Contas a receber</span>
-          <span className="text-muted-foreground">›</span>
-          <span className="text-foreground">Detalhes da fatura</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Header do Paciente */}

@@ -94,23 +94,27 @@ export interface UpdatePatientInput {
 
 // Converte PatientMedicalDataFormatted para PatientMedicalData (tipo esperado pelo PatientFull)
 function toPatientMedicalData(data: PatientMedicalDataFormatted): PatientMedicalData {
-  // Converter records
   const records: MedicalRecord[] = data.records.map(r => ({
     id: r.id,
     patientId: r.patientId,
+    appointmentId: r.appointmentId ?? null,
     diagnosis: r.diagnosis,
     date: r.date,
     time: r.time,
     complaint: r.complaint,
-    diseaseHistory: r.diseaseHistory || '',
-    prescription: r.prescription || '',
-    privateNotes: r.privateNotes || undefined,
+    diseaseHistory: r.diseaseHistory ?? null,
+    prescription: r.prescription ?? null,
+    privateNotes: r.privateNotes ?? null,
+    isSigned: r.isSigned,
+    signedAt: r.signedAt ?? null,
     signedBy: r.signedBy ? {
       name: r.signedBy.name,
       crm: r.signedBy.crm,
-      signedAt: r.signedBy.signedAt || undefined,
-    } : { name: '', crm: '' },
+      signedAt: r.signedBy.signedAt ?? null,
+    } : null,
+    erratas: r.erratas || [],
     createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
   }))
 
   // Converter evolutions
@@ -139,26 +143,26 @@ function toPatientMedicalData(data: PatientMedicalDataFormatted): PatientMedical
     status: t.status,
   }))
 
-  // Converter anamnesis
-  const anamnesis: Anamnesis | undefined = data.anamnesis ? {
+  const anamnesis: Anamnesis | null = data.anamnesis ? {
     id: data.anamnesis.id,
     patientId: data.anamnesis.patientId,
     hasHereditaryDisease: data.anamnesis.hasHereditaryDisease,
-    hereditaryDiseaseDetails: data.anamnesis.hereditaryDiseaseDetails || undefined,
+    hereditaryDiseaseDetails: data.anamnesis.hereditaryDiseaseDetails ?? null,
     usesMedication: data.anamnesis.usesMedication,
-    medicationDetails: data.anamnesis.medicationDetails || undefined,
-    allergies: data.anamnesis.allergies || undefined,
-    surgeries: data.anamnesis.surgeries || undefined,
-    familyHistory: data.anamnesis.familyHistory || undefined,
+    medicationDetails: data.anamnesis.medicationDetails ?? null,
+    allergies: data.anamnesis.allergies ?? null,
+    surgeries: data.anamnesis.surgeries ?? null,
+    familyHistory: data.anamnesis.familyHistory ?? null,
     createdAt: data.anamnesis.createdAt,
-  } : undefined
+    updatedAt: data.anamnesis.updatedAt,
+  } : null
 
-  // Converter attachments
   const attachments: MedicalAttachment[] = data.attachments.map(a => ({
     id: a.id,
     patientId: a.patientId,
+    prontuarioId: a.prontuarioId ?? null,
     name: a.name,
-    code: a.code || '',
+    code: a.code ?? null,
     uploadedAt: a.uploadedAt,
     url: a.url,
     type: a.type,

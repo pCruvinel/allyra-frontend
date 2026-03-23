@@ -26,7 +26,7 @@ export function MainLayout({ children, title, breadcrumb, actionButton }: MainLa
 
   // Em tablet, sidebar é sempre collapsed (64px)
   // Em desktop, segue o estado do contexto
-  const sidebarWidth = isMobile ? 0 : isTablet ? 20 : isCollapsed ? 20 : 244
+  const sidebarWidth = isMobile ? 0 : isTablet ? 20 : isCollapsed ? 20 : 220
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -46,7 +46,7 @@ export function MainLayout({ children, title, breadcrumb, actionButton }: MainLa
           !isMobile && `ml-${sidebarWidth}`
         )}
         style={{
-          marginLeft: isMobile ? 0 : sidebarWidth === 244 ? '244px' : sidebarWidth === 20 ? '80px' : 0
+          marginLeft: isMobile ? 0 : sidebarWidth === 220 ? '220px' : sidebarWidth === 20 ? '80px' : 0
         }}
       >
         {/* Navbar */}

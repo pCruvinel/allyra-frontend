@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Eye, CreditCard, MessageCircle } from 'lucide-react'
+import { Eye, CreditCard, MessageCircle } from 'lucide-react'
 import { DataTable, SimpleDropdownMenu, FloatingButton } from '@/components/ui'
 import { FinancialSummaryCard } from '@/components/ui/progress-bar'
 import { ChatPanel } from '@/components/chat'
@@ -111,7 +110,6 @@ const tableColumns: Column<RepasseTableRow>[] = [
 ]
 
 export function RepassePage() {
-  const navigate = useNavigate()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isRegistrarRepasseOpen, setIsRegistrarRepasseOpen] = useState(false)
   const [isDetalhesRepasseOpen, setIsDetalhesRepasseOpen] = useState(false)
@@ -187,9 +185,7 @@ export function RepassePage() {
     setFilters(newFilters)
   }
 
-  const handleGoBack = () => {
-    navigate({ to: '/financeiro' })
-  }
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true)
@@ -204,22 +200,6 @@ export function RepassePage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>Repasse</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Início</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Financeiro</span>
-          <span className="text-muted-foreground">›</span>
-          <span className="text-foreground">Repasse</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Tabela */}

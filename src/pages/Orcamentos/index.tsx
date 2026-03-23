@@ -6,7 +6,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
-  ArrowLeft,
   Eye,
   CheckCircle,
   Calendar,
@@ -236,9 +235,7 @@ export function OrcamentosPage() {
     setFilters(newFilters)
   }
 
-  const handleGoBack = () => {
-    navigate({ to: '/' })
-  }
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true)
@@ -250,20 +247,6 @@ export function OrcamentosPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>Orçamentos</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Início</span>
-          <span className="text-muted-foreground">›</span>
-          <span className="text-foreground">Orçamentos</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Resumo */}

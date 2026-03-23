@@ -460,20 +460,20 @@ export function DataTable<T>({
 
       {/* Desktop: Column Headers */}
       {!isMobile && (
-        <div className="flex items-start justify-between px-6 py-4">
+        <div className="flex items-center justify-between px-4 py-2">
           {columns.map((column) => (
             <div
               key={String(column.key)}
-              className={cn('py-2', column.width || 'flex-1')}
+              className={cn('py-1', column.width || 'flex-1')}
             >
-              <div className="text-[10px] font-semibold uppercase text-foreground">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {column.header}
               </div>
             </div>
           ))}
           {rowActions && (
-            <div className="py-2">
-              <div className="text-[10px] font-semibold uppercase text-foreground">
+            <div className="py-1">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Ações
               </div>
             </div>
@@ -514,7 +514,7 @@ export function DataTable<T>({
           paginatedData.map((item) => (
             <div
               key={keyExtractor(item)}
-              className="flex items-center justify-between h-12 px-4 mx-2 bg-muted/30 border-l-2 border-primary/70 rounded-r-xl overflow-hidden hover:bg-muted/50 transition-colors"
+              className="flex items-center justify-between py-1.5 px-4 mx-2 border-b border-border/20 overflow-hidden hover:bg-muted/50 transition-colors"
             >
               {columns.map((column) => (
                 <div
@@ -531,7 +531,7 @@ export function DataTable<T>({
                     </div>
                   ) : (
                     <div className={cn(
-                      "text-xs font-semibold text-foreground",
+                      "text-sm text-foreground",
                       column.truncate && 'truncate'
                     )}>
                       {String((item as Record<string, unknown>)[column.key as string] ?? '')}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Calendar, Clock, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,7 @@ interface EvolucaoTabProps {
 
 export function EvolucaoTab({ evolutions, patientId }: EvolucaoTabProps) {
   const { createEvolucao, createEvolucaoEtapa, isLoading } = useMedicalData({ autoFetch: false })
+  const [displayEvolutions, setDisplayEvolutions] = useState(evolutions)
   const [showNewForm, setShowNewForm] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [activeStageForm, setActiveStageForm] = useState<string | null>(null)
@@ -20,10 +21,15 @@ export function EvolucaoTab({ evolutions, patientId }: EvolucaoTabProps) {
   const [newStageDate, setNewStageDate] = useState('')
   const [newStageTime, setNewStageTime] = useState('')
 
+  useEffect(() => {
+    setDisplayEvolutions(evolutions)
+  }, [evolutions])
+
   const handleNewEvolution = async () => {
     if (!newTitle.trim()) return
     const result = await createEvolucao(patientId, { title: newTitle })
     if (result) {
+      setDisplayEvolutions((current) => [result, ...current])
       setNewTitle('')
       setShowNewForm(false)
     }
@@ -31,12 +37,19 @@ export function EvolucaoTab({ evolutions, patientId }: EvolucaoTabProps) {
 
   const handleNewStage = async (evolutionId: string) => {
     if (!newStageDescription.trim()) return
-    const success = await createEvolucaoEtapa(evolutionId, {
+    const stage = await createEvolucaoEtapa(evolutionId, {
       description: newStageDescription,
       date: newStageDate || undefined,
       time: newStageTime || undefined,
     })
-    if (success) {
+    if (stage) {
+      setDisplayEvolutions((current) =>
+        current.map((evolution) =>
+          evolution.id === evolutionId
+            ? { ...evolution, stages: [...evolution.stages, stage] }
+            : evolution,
+        ),
+      )
       setNewStageDescription('')
       setNewStageDate('')
       setNewStageTime('')
@@ -102,7 +115,7 @@ export function EvolucaoTab({ evolutions, patientId }: EvolucaoTabProps) {
 
       {/* Lista de Evoluções */}
       <div className="space-y-6">
-        {evolutions.map((evolution) => (
+        {displayEvolutions.map((evolution) => (
           <EvolutionCard
             key={evolution.id}
             evolution={evolution}
@@ -121,7 +134,7 @@ export function EvolucaoTab({ evolutions, patientId }: EvolucaoTabProps) {
         ))}
       </div>
 
-      {evolutions.length === 0 && !showNewForm && (
+      {displayEvolutions.length === 0 && !showNewForm && (
         <div className="text-center py-8 text-muted-foreground">
           Nenhuma evolução registrada
         </div>

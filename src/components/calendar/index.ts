@@ -1,6 +1,7 @@
 export { CalendarGrid } from './CalendarGrid'
 export { CalendarHeader } from './CalendarHeader'
 export { CalendarCell } from './CalendarCell'
+export { CalendarMonthView } from './CalendarMonthView'
 export { CalendarWeekView } from './CalendarWeekView'
 export { CalendarDayView } from './CalendarDayView'
 export { EventBadge } from './EventBadge'

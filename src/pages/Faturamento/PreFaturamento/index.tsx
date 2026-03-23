@@ -1,7 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import {
-  ArrowLeft,
   FileText,
   Pencil,
   Trash2,
@@ -40,7 +38,6 @@ interface PreFaturamentoTableRow {
 }
 
 export function PreFaturamentoPage() {
-  const navigate = useNavigate()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -85,9 +82,7 @@ export function PreFaturamentoPage() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedData = tableData.slice(startIndex, startIndex + itemsPerPage)
 
-  const handleGoBack = () => {
-    navigate({ to: '/faturamento' })
-  }
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true)
@@ -215,22 +210,6 @@ export function PreFaturamentoPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={handleGoBack} className="hover:text-foreground">
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <span>Pré-faturamento</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Início</span>
-          <span className="text-muted-foreground">›</span>
-          <span>Faturamento</span>
-          <span className="text-muted-foreground">›</span>
-          <span className="text-foreground">Pré-faturamento</span>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Filtros */}

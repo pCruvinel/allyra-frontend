@@ -42,7 +42,7 @@ export function ProfileDropdown() {
       {/* Botão de Perfil */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors"
+        className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-colors hover:bg-muted/50"
       >
         <Avatar className="w-8 h-8">
           <AvatarImage src={user?.avatar} alt={user?.name || ''} />

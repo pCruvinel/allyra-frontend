@@ -472,7 +472,7 @@ function MetasPageContent() {
         </div>
       </div>
 
-      {/* Navbar do módulo: SearchBar | ModeToggle | Tutorial */}
+      {/* SearchBar do modulo e acesso ao tutorial */}
       <MetasNavbar
         activeTab={activeTab}
         searchQuery={searchQuery}

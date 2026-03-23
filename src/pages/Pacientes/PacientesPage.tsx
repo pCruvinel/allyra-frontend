@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { UserSearch, UserX, Ban, MessageCircle, RotateCcw } from 'lucide-react'
-import { DataTable, SimpleDropdownMenu, FloatingButton, StatusBadge } from '@/components/ui'
+import { Ban, MessageCircle, RotateCcw, UserSearch, UserX } from 'lucide-react'
+import { DataTable, FloatingButton, SimpleDropdownMenu, StatusBadge } from '@/components/ui'
 import { ChatPanel } from '@/components/chat'
 import { ConfirmActionModal, NovoPacienteModal } from '@/components/modals'
 import { usePatients, useInsurances } from '@/hooks'
@@ -246,7 +246,9 @@ export function PacientesPage() {
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
           <button
-            onClick={refresh}
+            onClick={() => {
+              void refresh()
+            }}
             className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
           >
             Tentar novamente

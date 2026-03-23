@@ -1,9 +1,10 @@
 /**
- * Tipos para o módulo de Relatórios
+ * Tipos para o modulo de Relatorios
  */
 
 export type TipoRelatorio =
   | 'agenda'
+  | 'escalas'
   | 'financeiro'
   | 'comissao'
   | 'evolucao'
@@ -46,70 +47,74 @@ export interface GerarRelatorioRequest {
   filtros: Omit<FiltrosRelatorio, 'tipo'>
 }
 
-/**
- * Configurações dos tipos de relatórios disponíveis
- */
 export const REPORT_TYPES: RelatorioConfig[] = [
   {
     tipo: 'agenda',
     titulo: 'Agenda',
-    descricao: 'Relatório de agendamentos',
+    descricao: 'Relatorio de agendamentos',
     icone: 'Calendar',
     filtrosDisponiveis: ['periodo', 'profissional', 'status'],
   },
   {
+    tipo: 'escalas',
+    titulo: 'Escalas',
+    descricao: 'Carga horaria e utilizacao por profissional',
+    icone: 'ClipboardList',
+    filtrosDisponiveis: ['periodo', 'profissional'],
+  },
+  {
     tipo: 'financeiro',
     titulo: 'Financeiro',
-    descricao: 'Relatório financeiro',
+    descricao: 'Relatorio financeiro',
     icone: 'DollarSign',
     filtrosDisponiveis: ['periodo', 'profissional', 'status'],
   },
   {
     tipo: 'comissao',
-    titulo: 'Comissão',
-    descricao: 'Relatório de comissões',
+    titulo: 'Comissao',
+    descricao: 'Relatorio de comissoes',
     icone: 'Percent',
     filtrosDisponiveis: ['periodo', 'profissional'],
   },
   {
     tipo: 'evolucao',
-    titulo: 'Evolução',
-    descricao: 'Relatório de evolução',
+    titulo: 'Evolucao',
+    descricao: 'Relatorio de evolucao',
     icone: 'TrendingUp',
     filtrosDisponiveis: ['periodo', 'profissional', 'especialidade'],
   },
   {
     tipo: 'tratamento',
     titulo: 'Tratamento',
-    descricao: 'Relatório de tratamentos',
+    descricao: 'Relatorio de tratamentos',
     icone: 'Heart',
     filtrosDisponiveis: ['periodo', 'profissional', 'especialidade'],
   },
   {
     tipo: 'paciente',
     titulo: 'Paciente',
-    descricao: 'Relatório de pacientes',
+    descricao: 'Relatorio de pacientes',
     icone: 'Users',
     filtrosDisponiveis: ['periodo', 'status'],
   },
   {
     tipo: 'estoque',
     titulo: 'Estoque',
-    descricao: 'Relatório de estoque',
+    descricao: 'Relatorio de estoque',
     icone: 'Package',
     filtrosDisponiveis: ['periodo', 'status'],
   },
   {
     tipo: 'homecare',
     titulo: 'Home Care',
-    descricao: 'Relatório de atendimentos domiciliares',
+    descricao: 'Relatorio de atendimentos domiciliares',
     icone: 'Home',
     filtrosDisponiveis: ['periodo', 'profissional', 'status'],
   },
   {
     tipo: 'geral',
     titulo: 'Geral',
-    descricao: 'Relatório geral',
+    descricao: 'Relatorio geral',
     icone: 'FileText',
     filtrosDisponiveis: ['periodo'],
   },

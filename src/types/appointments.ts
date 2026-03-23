@@ -66,6 +66,8 @@ export interface AppointmentFormatted {
   professionalName: string
   serviceName: string
   insuranceName: string
+  // Série recorrente (se pertence a uma)
+  serieRecorrenciaId?: string | null
 }
 
 export type CreateAppointmentInput = {

@@ -9,12 +9,12 @@ import { apiService } from '@/services/api.service'
 import { toast } from 'sonner'
 import { logger } from '@/lib/logger'
 import {
-  ConfirmArrivalModal,
   CreateAppointmentModal,
   ProcessPaymentModal,
   ConfirmAbsenceModal,
   NovoPacienteModal,
 } from '.'
+import { CheckinModal } from '@/components/modals/CheckinModal'
 import type { PaymentFormData } from './ProcessPaymentModal'
 
 import { type CreatePatientInput } from '@/schemas/patient.schema'
@@ -32,29 +32,23 @@ interface CreateAppointmentData {
   isRecurring?: boolean
   recurrenceType?: 'semanal' | 'quinzenal' | 'mensal'
   recurrenceEndDate?: string
+  diasSemana?: number[]
 }
 
 export function GlobalModals() {
   const { modalState, closeModal } = useModal()
   const { currentClinica } = useAuth()
   const { createPatient } = usePatients({ autoFetch: false })
-  const { registerArrival, registerNoShow, createAppointment } = useAppointments({ autoFetch: false })
+  const { registerNoShow, createAppointment } = useAppointments({ autoFetch: false })
   const { getServiceDuration, insurancesOptions } = useAppointmentOptions()
   const { refresh } = useData()
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
-  // Handler para confirmar chegada do paciente
-  const handleConfirmArrival = async () => {
-    if (!modalState.appointment?.id) {
-      toast.error('Agendamento não identificado')
-      return
-    }
-
-    const success = await registerArrival(String(modalState.appointment.id))
-    if (success) {
-      closeModal()
-    }
+  // Handler para confirmar chegada — agora usa CheckinModal diretamente
+  const handleCheckinSuccess = () => {
+    closeModal()
+    refresh()
   }
 
   // Handler para criar novo agendamento (suporta modo grupo)
@@ -134,6 +128,7 @@ export function GlobalModals() {
         observacoes: '',
         recorrencia_tipo: data.recurrenceType,
         recorrencia_data_fim: data.recurrenceEndDate,
+        dias_semana: data.diasSemana || undefined,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any, currentClinica.id)
       
@@ -249,14 +244,21 @@ export function GlobalModals() {
 
   return (
     <>
-      <ConfirmArrivalModal
-        isOpen={modalState.type === 'arrival'}
-        onClose={closeModal}
-        onConfirm={handleConfirmArrival}
-        patientName={modalState.appointment?.patientName || ''}
-        date={modalState.appointment?.date || ''}
-        time={modalState.appointment?.time || ''}
-      />
+      {modalState.type === 'arrival' && modalState.appointment && (
+        <CheckinModal
+          isOpen={true}
+          onClose={closeModal}
+          onSuccess={handleCheckinSuccess}
+          appointment={{
+            id: String(modalState.appointment.id),
+            patientName: modalState.appointment.patientName || '',
+            dateStr: modalState.appointment.date || '',
+            date: modalState.appointment.date || '',
+            time: modalState.appointment.time || '',
+            serviceName: modalState.appointment.serviceName || '',
+          }}
+        />
+      )}
 
       <CreateAppointmentModal
         isOpen={modalState.type === 'appointment'}

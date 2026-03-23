@@ -94,7 +94,7 @@ export function NotificationsDropdown() {
       {/* Botão de Notificações */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-muted/50 transition-colors"
+        className="relative rounded-lg p-1.5 transition-colors hover:bg-muted/50"
       >
         <Bell size={20} className="text-muted-foreground" />
         {/* Badge de notificações não lidas */}

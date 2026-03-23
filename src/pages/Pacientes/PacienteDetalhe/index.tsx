@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearch, useNavigate } from '@tanstack/react-router'
 import { Users, ClipboardList, Calendar, Loader2, ShieldAlert, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePatientDetails } from '@/hooks'
+import { useModulePermission } from '@/hooks/useModuleAccess'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -37,13 +38,24 @@ export function PacienteDetalhePage() {
   const { patientId } = useParams({ strict: false })
   const search = useSearch({ strict: false }) as { tab?: string }
   const navigate = useNavigate()
+  const { canAccess: canAccessProntuario } = useModulePermission('prontuario')
   const initialTab = (['dados', 'prontuario', 'agendamentos'] as Section[]).includes(search.tab as Section)
     ? (search.tab as Section)
     : 'dados'
   const [activeSection, setActiveSection] = useState<Section>(initialTab)
+  const availableSections = useMemo(
+    () => sections.filter((section) => section.id !== 'prontuario' || canAccessProntuario),
+    [canAccessProntuario],
+  )
 
   // Usar o hook de detalhes do paciente
   const { patient, isLoading, error, refresh } = usePatientDetails(patientId)
+
+  useEffect(() => {
+    if (!canAccessProntuario && activeSection === 'prontuario') {
+      setActiveSection('dados')
+    }
+  }, [activeSection, canAccessProntuario])
 
   // Loading state
   if (isLoading) {
@@ -142,7 +154,7 @@ export function PacienteDetalhePage() {
 
       {/* Navegação de seções */}
       <div className="flex items-center justify-end gap-1.5 overflow-x-auto">
-        {sections.map((section) => {
+        {availableSections.map((section) => {
           const Icon = section.icon
           const isActive = activeSection === section.id
 
@@ -169,7 +181,7 @@ export function PacienteDetalhePage() {
         {activeSection === 'dados' && (
           <DadosPacienteSection patient={patient} onRefresh={refresh} />
         )}
-        {activeSection === 'prontuario' && (
+        {activeSection === 'prontuario' && canAccessProntuario && (
           patient.medical ? (
             <ProntuarioSection medicalData={patient.medical} patientId={patient.personal.id} />
           ) : (

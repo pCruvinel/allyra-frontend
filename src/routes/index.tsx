@@ -26,7 +26,9 @@ import { DashboardLayout } from '@/pages/Dashboard'
 const NotificacoesPage = lazy(() => import('@/pages/Notificacoes').then(m => ({ default: m.NotificacoesPage })))
 const AgendaPage = lazy(() => import('@/pages/Agenda').then(m => ({ default: m.AgendaPage })))
 const PacientesPage = lazy(() => import('@/pages/Pacientes').then(m => ({ default: m.PacientesPage })))
+const EngajamentoPage = lazy(() => import('@/pages/Pacientes').then(m => ({ default: m.EngajamentoPage })))
 const PacienteDetalhePage = lazy(() => import('@/pages/Pacientes/PacienteDetalhe').then(m => ({ default: m.PacienteDetalhePage })))
+const EscalasPage = lazy(() => import('@/pages/Escalas').then(m => ({ default: m.EscalasPage })))
 const ConfiguracoesPage = lazy(() => import('@/pages/Configuracoes').then(m => ({ default: m.ConfiguracoesPage })))
 const FinanceiroPage = lazy(() => import('@/pages/Financeiro').then(m => ({ default: m.FinanceiroPage })))
 const ContasAReceberPage = lazy(() => import('@/pages/Financeiro/ContasAReceber').then(m => ({ default: m.ContasAReceberPage })))
@@ -248,6 +250,26 @@ const pacientesRoute = createRoute({
   ),
 })
 
+// Engajamento Route (protected) — painel de engajamento de pacientes
+const engajamentoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/pacientes/engajamento',
+  component: () => (
+    <ProtectedRoute>
+      <MainLayout
+        title="Engajamento"
+        breadcrumb={[
+          { label: 'Início', href: '/' },
+          { label: 'Pacientes', href: '/pacientes' },
+          { label: 'Engajamento' },
+        ]}
+      >
+        <LazyPage><EngajamentoPage /></LazyPage>
+      </MainLayout>
+    </ProtectedRoute>
+  ),
+})
+
 // Paciente Detalhe Route (protected)
 const pacienteDetalheRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -266,6 +288,22 @@ const pacienteDetalheRoute = createRoute({
         ]}
       >
         <LazyPage><PacienteDetalhePage /></LazyPage>
+      </MainLayout>
+    </ProtectedRoute>
+  ),
+})
+
+// Escalas Route (protected)
+const escalasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/escalas',
+  component: () => (
+    <ProtectedRoute>
+      <MainLayout
+        title="Escalas e RH"
+        breadcrumb={[{ label: 'Inicio', href: '/' }, { label: 'Escalas e RH' }]}
+      >
+        <LazyPage><EscalasPage /></LazyPage>
       </MainLayout>
     </ProtectedRoute>
   ),
@@ -768,7 +806,9 @@ const routeTree = rootRoute.addChildren([
   homeRoute,
   agendaRoute,
   pacientesRoute,
+  engajamentoRoute,
   pacienteDetalheRoute,
+  escalasRoute,
   faturamentoRoute,
   preFaturamentoRoute,
   faturamentosEmitidosRoute,

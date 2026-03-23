@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Eye, X, Ban, MessageCircle, CheckCircle, Clock, Calendar, DollarSign } from 'lucide-react'
+import { Eye, X, Ban, MessageCircle, CheckCircle, Clock, Calendar, DollarSign } from 'lucide-react'
 import { DataTable, SimpleDropdownMenu, FloatingButton, Button } from '@/components/ui'
 import { FinancialSummaryCard } from '@/components/ui/progress-bar'
 import { ChatPanel } from '@/components/chat'
@@ -119,7 +118,6 @@ function StatCard({ icon, value, label, valueColor = 'text-primary' }: StatCardP
 }
 
 export function CobrancaPage() {
-  const navigate = useNavigate()
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isNovaCobrancaOpen, setIsNovaCobrancaOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
@@ -205,9 +203,7 @@ export function CobrancaPage() {
     setFilters(newFilters)
   }
 
-  const handleGoBack = () => {
-    navigate({ to: '/financeiro' })
-  }
+
 
   const handleOpenChat = () => {
     setIsChatOpen(true)
@@ -230,31 +226,17 @@ export function CobrancaPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
+      {/* Header Actions */}
       <div className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <button onClick={handleGoBack} className="hover:text-foreground">
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <span>Cobrança</span>
-            <span className="text-muted-foreground">›</span>
-            <span>Início</span>
-            <span className="text-muted-foreground">›</span>
-            <span>Financeiro</span>
-            <span className="text-muted-foreground">›</span>
-            <span className="text-foreground">Cobrança</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="rounded-full">
-              <CheckCircle className="w-4 h-4 mr-2 text-primary" />
-              Cobranças disponíveis
-            </Button>
-            <Button variant="outline" className="rounded-full">
-              <Clock className="w-4 h-4 mr-2" />
-              Histórico de cobranças
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-3">
+          <Button variant="outline" className="rounded-full">
+            <CheckCircle className="w-4 h-4 mr-2 text-primary" />
+            Cobranças disponíveis
+          </Button>
+          <Button variant="outline" className="rounded-full">
+            <Clock className="w-4 h-4 mr-2" />
+            Histórico de cobranças
+          </Button>
         </div>
       </div>
 

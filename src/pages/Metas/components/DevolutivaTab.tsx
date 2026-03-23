@@ -40,12 +40,6 @@ import { useTherapeuticPlans } from '@/hooks/useTherapeuticPlans'
 import { useGoalReport } from '@/hooks/useGoalProgress'
 import { ShareModal } from './modals/ShareModal'
 import { PdfPreview } from './PdfPreview'
-import {
-  buildDevolutivaNotes,
-  parseDevolutivaNotes,
-  readStoredDevolutivaNotes,
-  writeStoredDevolutivaNotes,
-} from '../utils/devolutivaNotes'
 import { cn } from '@/lib/utils'
 import type { TherapeuticPlan, GoalProgressByMeta } from '@/types/goals'
 import type { PatientListItem } from '@/types/patient'
@@ -104,7 +98,7 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
 
   // Hooks de dados
   const { patients, isLoading: patientsLoading } = usePatients()
-  const { plans, isLoading: plansLoading } = useTherapeuticPlans({
+  const { plans, isLoading: plansLoading, updatePlan } = useTherapeuticPlans({
     autoFetch: !!selectedPatientId,
     pacienteId: selectedPatientId || undefined,
   })
@@ -155,10 +149,8 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
   }
 
   const handleResetOpinionDraft = (plan: TherapeuticPlan | null) => {
-    const rawNotes = plan?.id ? readStoredDevolutivaNotes(plan.id) ?? plan.observacoes : plan?.observacoes
-    const parsedNotes = parseDevolutivaNotes(rawNotes)
-    setTechnicalOpinion(parsedNotes.technicalOpinion)
-    setRecommendations(parsedNotes.recommendations)
+    setTechnicalOpinion(plan?.parecer_tecnico || '')
+    setRecommendations(plan?.recomendacoes || '')
     setIsEditingOpinion(false)
   }
 
@@ -171,16 +163,15 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
     setIsSavingOpinion(true)
 
     try {
-      writeStoredDevolutivaNotes(
-        selectedPlan.id,
-        buildDevolutivaNotes({
-          technicalOpinion,
-          recommendations,
-        })
-      )
+      const result = await updatePlan(selectedPlan.id, {
+        parecer_tecnico: technicalOpinion,
+        recomendacoes: recommendations,
+      })
 
-      setIsEditingOpinion(false)
-      toast.success('Devolutiva salva com sucesso!')
+      if (result) {
+        setIsEditingOpinion(false)
+        toast.success('Devolutiva salva com sucesso!')
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao salvar devolutiva')
     } finally {
@@ -228,12 +219,8 @@ export function DevolutivaTab({ searchQuery = '' }: DevolutivaTabProps) {
     }
 
     const latestSelectedPlan = plans.find((plan) => plan.id === selectedPlan.id) || selectedPlan
-    const rawNotes =
-      readStoredDevolutivaNotes(latestSelectedPlan.id) ?? latestSelectedPlan.observacoes
-    const parsedNotes = parseDevolutivaNotes(rawNotes)
-
-    setTechnicalOpinion(parsedNotes.technicalOpinion)
-    setRecommendations(parsedNotes.recommendations)
+    setTechnicalOpinion(latestSelectedPlan.parecer_tecnico || '')
+    setRecommendations(latestSelectedPlan.recomendacoes || '')
     setIsEditingOpinion(false)
   }, [plans, selectedPlan])
 

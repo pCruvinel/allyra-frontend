@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Modal, ModalBody, ModalFooter } from '@/components/ui/modal'
-import { parseDevolutivaNotes, readStoredDevolutivaNotes } from '../utils/devolutivaNotes'
 import type { TherapeuticPlan, GoalReport } from '@/types/goals'
 import type { PatientListItem } from '@/types/patient'
 
@@ -101,9 +100,8 @@ export function PdfPreview({ plan, patient, report }: PdfPreviewProps) {
     return new Date(date).toLocaleDateString('pt-BR')
   }
 
-  const { technicalOpinion, recommendations } = parseDevolutivaNotes(
-    readStoredDevolutivaNotes(plan.id) ?? plan.observacoes
-  )
+  const technicalOpinion = plan.parecer_tecnico || ''
+  const recommendations = plan.recomendacoes || ''
 
   return (
     <div className="space-y-6">
