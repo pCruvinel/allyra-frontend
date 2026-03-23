@@ -218,9 +218,7 @@ export function CreateAppointmentModal({
     const endMins = endMinutes % 60
     const dataHoraFim = `${activeDate}T${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}:00${tzOffset}`
 
-    const conflictTarget = isGrupoMode && scheduleMode === 'unico'
-      ? (selectedProfessionals.length > 0 ? selectedProfessionals[0].value : professional)
-      : professional
+    const conflictTarget = professional
 
     // Conflict check
     try {
