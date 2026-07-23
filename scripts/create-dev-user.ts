@@ -13,12 +13,17 @@ dotenv.config({ path: '.env' })
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const DEV_USER_EMAIL = process.env.DEV_USER_EMAIL
+const DEV_USER_PASSWORD = process.env.DEV_USER_PASSWORD
+const DEV_USER_NOME = process.env.DEV_USER_NOME || 'Desenvolvedor'
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('❌ VITE_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórios')
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !DEV_USER_EMAIL || !DEV_USER_PASSWORD) {
+  console.error('❌ Variáveis de ambiente obrigatórias ausentes')
   console.log('Certifique-se de que .env.local contém:')
   console.log('  VITE_SUPABASE_URL=https://xxx.supabase.co')
   console.log('  SUPABASE_SERVICE_ROLE_KEY=xxx')
+  console.log('  DEV_USER_EMAIL=dev@example.com')
+  console.log('  DEV_USER_PASSWORD=xxx')
   process.exit(1)
 }
 
@@ -33,11 +38,11 @@ async function createDevUser() {
   console.log('🚀 Criando usuário desenvolvedor...')
 
   const { data, error } = await supabase.auth.admin.createUser({
-    email: 'gestao@doed.com.br',
-    password: '***REMOVED***',
+    email: DEV_USER_EMAIL,
+    password: DEV_USER_PASSWORD,
     email_confirm: true,
     user_metadata: {
-      nome: 'Douglas Oliveira',
+      nome: DEV_USER_NOME,
       perfil_tipo: 'desenvolvedor',
     },
   })
@@ -48,17 +53,17 @@ async function createDevUser() {
 
       // Buscar usuário existente
       const { data: users } = await supabase.auth.admin.listUsers()
-      const existingUser = users?.users.find((u) => u.email === 'gestao@doed.com.br')
+      const existingUser = users?.users.find((u) => u.email === DEV_USER_EMAIL)
 
       if (existingUser) {
         // Atualizar usuário
         const { data: updated, error: updateError } = await supabase.auth.admin.updateUserById(
           existingUser.id,
           {
-            password: '***REMOVED***',
+            password: DEV_USER_PASSWORD,
             email_confirm: true,
             user_metadata: {
-              nome: 'Douglas Oliveira',
+              nome: DEV_USER_NOME,
               perfil_tipo: 'desenvolvedor',
             },
           }
@@ -83,10 +88,6 @@ async function createDevUser() {
   console.log('✅ Usuário criado com sucesso!')
   console.log('   ID:', data.user.id)
   console.log('   Email:', data.user.email)
-  console.log('')
-  console.log('📝 Credenciais:')
-  console.log('   Email: gestao@doed.com.br')
-  console.log('   Senha: ***REMOVED***')
 }
 
 createDevUser()

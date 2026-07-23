@@ -10,6 +10,7 @@ dotenv.config({ path: '.env' })
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const DEV_USER_EMAIL = process.env.DEV_USER_EMAIL!
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
@@ -18,7 +19,7 @@ async function check() {
 
   // Verificar em auth.users
   const { data: users } = await supabase.auth.admin.listUsers()
-  const authUser = users?.users.find((u) => u.email === 'gestao@doed.com.br')
+  const authUser = users?.users.find((u) => u.email === DEV_USER_EMAIL)
 
   if (authUser) {
     console.log('✅ auth.users:')
@@ -35,7 +36,7 @@ async function check() {
   const { data: usuario, error } = await supabase
     .from('usuarios')
     .select('id, email, nome_completo, perfil_tipo, ativo')
-    .eq('email', 'gestao@doed.com.br')
+    .eq('email', DEV_USER_EMAIL)
     .single()
 
   if (usuario) {

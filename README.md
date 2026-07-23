@@ -5,7 +5,7 @@ Frontend do Sistema de Gestão Integrado para Clínicas de Saúde.
 ## Repositório
 
 ```
-git@github-allyra:allyra-dizevolv/allyra-saas.git
+https://github.com/pCruvinel/allyra-frontend.git
 ```
 
 ## Repositórios Relacionados
@@ -37,9 +37,9 @@ Allyra é uma plataforma SaaS multi-tenant para gestão completa de clínicas de
 ## Instalação
 
 ```bash
-# Clonar repositório (usar alias SSH!)
-git clone git@github-allyra:allyra-dizevolv/allyra-saas.git
-cd allyra-saas
+# Clonar repositório
+git clone https://github.com/pCruvinel/allyra-frontend.git
+cd allyra-frontend
 
 # Instalar dependências
 npm install
@@ -162,7 +162,7 @@ Para rodar migrations:
 
 ```bash
 # Clone o repositório da API
-git clone git@github-allyra:allyra-dizevolv/allyra-api.git
+git clone https://github.com/allyra-dizevolv/allyra-api.git
 
 # Execute as migrations
 cd allyra-api
@@ -172,10 +172,6 @@ npx supabase db push
 ## Status
 
 Em desenvolvimento - Frontend funcional integrado com Supabase.
-
-## Equipe
-
-Configuração multi-conta SSH disponível em `.backups/.ssh/GUIA-SSH-MULTIPLAS-CONTAS.md`
 
 ## Licença
 
